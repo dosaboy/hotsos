@@ -14,6 +14,32 @@ class HOTSOSDumper(yaml.Dumper):
         return self.represent_dict(data.items())
 
 
+def update_part(data, part_name):
+    part_path = os.path.join(constants.PLUGIN_TMP_DIR,
+                             "{}.{}.part.yaml".format(constants.PLUGIN_NAME,
+                                                      part_name))
+
+    actual_part_path = None
+    index = get_parts_index()
+    parts_index = os.path.join(constants.PLUGIN_TMP_DIR, "index.yaml")
+    with open(parts_index) as fd:
+        for part in index.values():
+            if part_path in part:
+                actual_part_path = part_path
+                break
+
+    if not actual_part_path:
+        return
+
+    with open(actual_part_path) as fd:
+        current = yaml.safe_load(fd.read())
+
+    current.update(data)
+
+    with open(actual_part_path, 'w') as fd:
+        fd.write(dump(current, stdout=False))
+
+
 def save_part(data, priority=0):
     """
     Save part output yaml in temporary location. These are collected and

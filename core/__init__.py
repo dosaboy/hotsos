@@ -59,6 +59,10 @@ class constants_properties(type):
     def MINIMAL_MODE(cls):
         return cls._MINIMAL_MODE()
 
+    @property
+    def USER_INPUT(cls):
+        return cls._USER_INPUT()
+
 
 class constants(object, metaclass=constants_properties):
     """
@@ -132,3 +136,8 @@ class constants(object, metaclass=constants_properties):
     @classmethod
     def _MINIMAL_MODE(cls):
         return os.environ.get('MINIMAL_MODE')
+
+    @classmethod
+    def _USER_INPUT(cls):
+        return int(os.environ.get('USER_INPUT'))
+

@@ -43,6 +43,7 @@ export PLUGIN_TMP_DIR
 export PLUGIN_YAML_DEFS
 export HOTSOS_ROOT
 export MINIMAL_MODE=
+export USER_INPUT
 #===============================================================================
 
 PROGRESS_PID=
@@ -51,6 +52,7 @@ USER_PROVIDED_SUMMARY=
 MASTER_YAML_OUT_ORIG=`mktemp`
 SAVE_OUTPUT=false
 VERSION="${SNAP_REVISION:-development}"
+I_WANT_SPECIAL_SOS=false
 declare -a SOS_PATHS=()
 override_all_default=false
 # Ordering is not important here since associative arrays do not respect order.
@@ -205,6 +207,13 @@ while (($#)); do
             export MAX_LOGROTATE_DEPTH=$2
             shift
             ;;
+        --specialsos)
+            I_WANT_SPECIAL_SOS=true
+            ;;
+        --filter)
+            USER_INPUT=$2
+            shift
+            ;;
         -s|--save)
             SAVE_OUTPUT=true
             ;;
@@ -256,6 +265,10 @@ if ((${#SOS_PATHS[@]}==0)); then
     SOS_PATHS=( / )
 fi
 
+if $I_WANT_SPECIAL_SOS; then
+    PLUGINS[all]=true
+fi
+
 if ! $override_all_default && ! ${PLUGINS[all]}; then
     PLUGINS[all]=true
 fi
@@ -296,6 +309,7 @@ run_part ()
 {
     local plugin=$1
     local part=$2
+    local type=${3:-""}
     local t_start
     local t_end
 
@@ -308,7 +322,8 @@ run_part ()
     export PYTHONPATH="${HOTSOS_ROOT}"
     export PLUGIN_YAML_DEFS="${HOTSOS_ROOT}/defs"
 
-    ${HOTSOS_ROOT}/plugins/$plugin/$part
+    [[ -z $type ]] || type="$type/"
+    ${HOTSOS_ROOT}/plugins/$plugin/$part >> $MASTER_YAML_OUT
 
     t_end=`date +%s%3N`
     delta=`echo "scale=3;($t_end-$t_start)/1000"| bc`
@@ -366,9 +381,16 @@ EOF
         # setup plugin temp area
         PLUGIN_TMP_DIR=`mktemp -d`
         for part in $(find "${HOTSOS_ROOT}/plugins/$plugin" -maxdepth 1 \
-                    -executable -type f,l| grep -v __pycache__); do
+                    -executable -type f,l| egrep -v "__pycache__|extras"); do
             run_part "$plugin" "$(basename "$part")"
         done
+
+        if [[ $plugin == "openstack" ]]; then
+            if $I_WANT_SPECIAL_SOS; then
+                run_part openstack get_extended_vm_info.py extras
+            fi
+        fi
+
         # teardown plugin temp area
         if [[ -n $PLUGIN_TMP_DIR ]] && [[ -d $PLUGIN_TMP_DIR ]]; then
             rm -rf $PLUGIN_TMP_DIR
