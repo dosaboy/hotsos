@@ -6,7 +6,7 @@ import os
 from common import (
     plugin_yaml,
 )
-from juju_common import (
+from common.juju.juju_common import (
     CHARM_MANIFEST_GLOB,
     JujuChecksBase,
     JUJU_LIB_PATH,

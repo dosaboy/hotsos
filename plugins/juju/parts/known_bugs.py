@@ -9,7 +9,7 @@ from common.known_bugs_utils import (
     add_known_bug,
     BugSearchDef,
 )
-from juju_common import (
+from common.juju.juju_common import (
     JUJU_LOG_PATH
 )
 

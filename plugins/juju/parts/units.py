@@ -4,7 +4,7 @@ import os
 from common import (
     plugin_yaml,
 )
-from juju_common import (
+from common.juju.juju_common import (
     JUJU_LOG_PATH,
     JujuChecksBase,
 )

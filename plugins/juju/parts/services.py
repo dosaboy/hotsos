@@ -9,7 +9,7 @@ from common import (
 )
 from common.issue_types import JujuWarning
 from common.issues_utils import add_issue
-from juju_common import (
+from common.juju.juju_common import (
     JUJU_LOG_PATH,
     JujuChecksBase,
 )
