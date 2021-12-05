@@ -16,11 +16,23 @@ vswitchd:
     expr:
       - '([0-9-]+)T[0-9:\.]+Z.+\|system@ovs-system: lost packet on port channel.+'
 errors-and-warnings:
-  hint: '(ERR|WARN)'
-  expr: '([0-9-]+)T[0-9:\.]+Z.+\|(ERR|ERROR|WARN)\|.+'
+  hint: '(ERR|ERROR|WARN)'
   ovs-vswitchd:
     input:
       path: 'var/log/openvswitch/ovs-vswitchd.log'
   ovsdb-server:
     input:
       path: 'var/log/openvswitch/ovsdb-server.log'
+    expr:
+      # elements are:
+      #   (1) date
+      #   (2) component
+      #   (3) log level
+      #   (4) message
+      - '([0-9-]+)T[0-9:\.]+Z.+\|(\S+)\|(\S+)\|(\S+: .+ \S+: No such device)'
+      - '([0-9-]+)T[0-9:\.]+Z.+\|(\S+)\|(\S+)\|(could not open network device \S+ \(No such device\))'
+      - '([0-9-]+)T[0-9:\.]+Z.+\|timeval(?:\(([a-zA-Z]+)(\d+)\))?|(\S+)|(Unreasonably long \d+ms poll interval)'
+      - '([0-9-]+)T[0-9:\.]+Z.+\|(\S+)\|(\S+)\|(received packet on unassociated datapath port \d+)'
+      - '([0-9-]+)T[0-9:\.]+Z.+\|(\S+)\|(\S+)\|(receive tunnel port not found \(\w+,)'
+      - '([0-9-]+)T[0-9:\.]+Z.+\|(\S+)\|.+'  # fallback
+
