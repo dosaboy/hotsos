@@ -180,6 +180,11 @@ myplugin:
           property:
             path: hotsos.core.plugins.system.SystemBase.virtualisation_type
             ops: [[eq, kvm], [truth], [not_], [not_]]
+      property_maxvalgt60:
+        requires:
+          property:
+            path: tests.unit.test_ycheck.TestClass.vallist
+            ops: [[max], [gt, 60]]
       apt_pkg_exists:
         requires:
           apt: nova-compute
@@ -228,12 +233,20 @@ myplugin:
                 - service_exists_and_enabled
                 - property_true_shortform
                 - property_has_value_longform
+                - property_maxvalgt60
         raises:
           type: hotsos.core.issues.SystemWarning
           message: log matched {num} times, snap and service exists
           format-dict:
             num: '@checks.logmatch.expr.results:len'
 """  # noqa
+
+
+class TestClass(object):
+
+    @property
+    def vallist(self):
+        return [1]
 
 
 class TestYamlChecks(utils.BaseTestCase):
@@ -402,8 +415,11 @@ class TestYamlChecks(utils.BaseTestCase):
                     elif check.name == 'service_exists_not_enabled':
                         checked += 1
                         self.assertFalse(check.result)
+                    elif check.name == 'property_maxvalgt60':
+                        checked += 1
+                        self.assertFalse(check.result)
 
-            self.assertEqual(checked, 4)
+            self.assertEqual(checked, 5)
 
             # now run the scenarios
             checker()
@@ -441,6 +457,33 @@ class TestYamlChecks(utils.BaseTestCase):
         msg = ("log matched 5 times")
         issues = list(IssuesStore().load().values())[0]
         self.assertEqual([issue['desc'] for issue in issues], [msg])
+
+    def test_yaml_def_scenario_checks_builtin_op(self):
+        with tempfile.TemporaryDirectory() as dtmp:
+            setup_config(PLUGIN_YAML_DEFS=dtmp, DATA_ROOT=dtmp,
+                         PLUGIN_NAME='myplugin')
+            path = os.path.join(dtmp, 'scenarios.yaml')
+            open(path, 'w').write(SCENARIO_CHECKS)
+            pass_list = [1, 2, 3, 61, 2]
+            fail_list = [1, 2, 3, 2]
+            for data in [pass_list, fail_list]:
+                with mock.patch('tests.unit.test_ycheck.TestClass.vallist',
+                                data):
+                    checker = scenarios.YScenarioChecker()
+                    checker()
+                    check_tested = False
+                    self.assertEqual(len(checker.scenarios), 1)
+                    for scenario in checker.scenarios:
+                        for check in scenario.checks.values():
+                            if check.name == 'property_maxvalgt60':
+                                if data == pass_list:
+                                    self.assertTrue(check.result)
+                                else:
+                                    self.assertFalse(check.result)
+
+                                check_tested = True
+
+                    self.assertTrue(check_tested)
 
     def _create_search_results(self, path, contents):
         with open(path, 'w') as fd:

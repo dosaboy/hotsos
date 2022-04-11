@@ -968,10 +968,15 @@ class YRequirementTypeBase(abc.ABC, YPropertyBase):
     def apply_op(self, op, input=None, expected=None, force_expected=False):
         log.debug("op=%s, input=%s, expected=%s, force_expected=%s", op,
                   input, expected, force_expected)
-        if expected is not None or force_expected:
-            return getattr(operator, op)(input, expected)
+        if hasattr(operator, op):
+            op_method = getattr(operator, op)
+        else:
+            op_method = getattr(builtins, op)
 
-        return getattr(operator, op)(input)
+        if expected is not None or force_expected:
+            return op_method(input, expected)
+
+        return op_method(input)
 
     def apply_ops(self, ops, input=None, normalise_value_types=False):
         """
