@@ -43,6 +43,8 @@ from hotsos.plugin_extensions.storage import (
 from hotsos.plugin_extensions.vault.summary import VaultSummary
 from hotsos.plugin_extensions.pacemaker.summary import PacemakerSummary
 
+SUMMARY_FORMATS = ['yaml', 'json', 'markdown', 'html']
+
 
 class HotSOSSummary(plugintools.PluginPartBase):
     """
@@ -256,7 +258,7 @@ class OutputManager(object):
         return summary
 
     def get(self, format=None, html_escape=False, minimal_mode=None,
-            plugin=None):
+            plugin=None, max_level=2):
         if plugin:
             filtered = {plugin: self._summary[plugin]}
         else:
@@ -265,14 +267,25 @@ class OutputManager(object):
         if minimal_mode:
             filtered = self.minimise(filtered, minimal_mode)
 
-        if format == 'json':
-            log.debug('Converting master yaml file to %s', format)
-            filtered = json.dumps(filtered, indent=2, sort_keys=True)
-        else:
+        if format is None:
+            format = 'yaml'
+
+        if format not in SUMMARY_FORMATS:
+            raise Exception("unsupported summary format '{}'".format(format))
+
+        log.debug('Saving summary as %s', format)
+        if format == 'yaml':
             filtered = plugintools.yaml_dump(filtered)
+        elif format == 'json':
+            filtered = json.dumps(filtered, indent=2, sort_keys=True)
+        elif format == 'markdown':
+            filtered = plugintools.MarkdownFormatter().dump(filtered)
+        elif format == 'html':
+            filtered = plugintools.HTMLFormatter().dump(filtered,
+                                                        max_level=max_level)
 
         if html_escape:
-            log.debug('Encoding output file to html')
+            log.debug('Applying html escaping to summary')
             filtered = html.escape(filtered)
 
         return filtered
