@@ -1,0 +1,22 @@
+data-root:
+  files:
+    var/log/neutron/neutron-server.log: |
+      2022-02-10 18:47:13.933 1593612 ERROR oslo_db.sqlalchemy.engines oslo_db.exception.DBConnectionError: (pymysql.err.OperationalError) (2013, 'Lost connection to MySQL server during query')
+    var/log/nova/nova-compute.log.1: |
+      2022-02-10 19:42:11.922 1276311 ERROR oslo_db.sqlalchemy.engines oslo_db.exception.DBConnectionError: (pymysql.err.OperationalError) (2013, 'Lost connection to MySQL server during query')
+    sos_commands/systemd/systemctl_list-unit-files: | 
+        neutron-server.service                enabled         enabled      
+        var-lib-nova-instances.mount          generated       enabled      
+        nova-api-metadata.service             enabled         enabled      
+        nova-compute.service                  enabled         enabled 
+    sos_commands/systemd/systemctl_list-units: |
+      neutron-server.service                  loaded active     running   OpenStack Neutron Server
+      var-lib-nova-instances.mount            loaded active mounted   /var/lib/nova/instances                                                       
+      nova-api-metadata.service               loaded active running   OpenStack Compute 
+  copy-from-original:
+    - sos_commands/date
+    - sos_commands/dpkg
+raised-issues:
+  OpenstackWarning: >-
+    One or more of Openstack services 'neutron-server, nova-compute' has
+    raised the following exceptions: oslo_db.exception.DBConnectionError

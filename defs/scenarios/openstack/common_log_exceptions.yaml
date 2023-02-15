@@ -1,0 +1,22 @@
+# Raise issues if Openstack services/agents have raised exceptions that indicate serious problems.
+vars:
+  all_exc_agents: '@hotsos.plugin_extensions.openstack.agent.exceptions.AgentExceptionCheckFactory.all:agents'
+  db_exc_types: '@hotsos.plugin_extensions.openstack.agent.exceptions.AgentExceptionCheckFactory.all:oslo_db\.exception\..+'
+checks:
+  agents_have_exceptions:
+    varops: [[$all_exc_agents], [length_hint]]
+  db_exceptions:
+    varops: [[$db_exc_types], [length_hint]]
+conclusions:
+  agents_have_exceptions:
+    decision:
+      - agents_have_exceptions
+      - db_exceptions
+    raises:
+      type: OpenstackWarning
+      message: >-
+        One or more of Openstack services '{agents}' has raised the following
+        exceptions: {db_exceptions}
+      format-dict:
+        agents: '@checks.agents_have_exceptions.requires.value:comma_join'
+        db_exceptions: '@checks.db_exceptions.requires.value:comma_join'

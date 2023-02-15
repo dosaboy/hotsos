@@ -4,6 +4,7 @@ import re
 from collections import UserDict
 from searchkit.utils import MPCache
 
+from hotsos.core.factory import FactoryBase
 from hotsos.core.log import log
 from hotsos.core.config import HotSOSConfig
 from hotsos.core.plugins.openstack.common import OpenstackChecksBase
@@ -77,6 +78,15 @@ class AgentExceptionCheckResults(UserDict):
             exceptions[exc_type] = exceptions_sorted
 
         return exceptions
+
+    def get_exceptions(self, expr):
+        matches = []
+        for results in self.values():
+            for exc_type in results:
+                if re.match(expr, exc_type):
+                    matches.append(exc_type)
+
+        return matches
 
     @property
     def exceptions_raised(self):
@@ -263,3 +273,52 @@ class AgentExceptionChecks(OpenstackChecksBase):
         exc_info = self.execute()
         if exc_info:
             return {agent: dict(info) for agent, info in exc_info.items()}
+
+
+class AgentExceptionCheck(object):
+
+    def __init__(self, attr):
+        """
+        @param attr:
+        """
+        self.attr = attr
+        self.exception_checks = AgentExceptionChecks()
+
+    def __getattr__(self, service):
+        """
+
+        @param service: name of service we want to get attr from or "all" to
+                        get from all services.
+        """
+        value = []
+        if service != 'all':
+            services = [service]
+        else:
+            services = list(self.exception_checks.ost_projects.all.keys())
+
+        ret = self.exception_checks.execute()
+        for _service in services:
+            if _service not in ret:
+                continue
+
+            for agent in self.exception_checks.ost_projects[_service].services:
+                if agent not in ret[_service]:
+                    continue
+
+                if hasattr(ret[_service], self.attr):
+                    value.extend(getattr(ret[_service], self.attr))
+                else:
+                    value.extend(ret[_service].get_exceptions(self.attr))
+
+        if value:
+            value = list(set(value))
+            if service != 'all':
+                return value[0]
+
+            return value
+
+
+class AgentExceptionCheckFactory(FactoryBase):
+
+    def __getattr__(self, exception_name):
+        return AgentExceptionCheck(exception_name)

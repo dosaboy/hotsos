@@ -824,8 +824,7 @@ class TestOpenstackAgentEvents(TestOpenstackBase):
                                 'start': '2022-02-10 00:53:27.434000'}}}}
 
         section_key = "neutron-ovs-agent"
-        inst = agent.events.NeutronAgentEventChecks(
-                                                      searchobj=FileSearcher())
+        inst = agent.events.NeutronAgentEventChecks(searchobj=FileSearcher())
         inst.run_checks()
         actual = self.part_output_to_actual(inst.output)
         self.assertEqual(actual.get(section_key), expected)
@@ -885,8 +884,7 @@ class TestOpenstackAgentEvents(TestOpenstackBase):
                                 'start': '2022-02-10 16:10:35.711000'}}}}
 
         section_key = "neutron-l3-agent"
-        inst = agent.events.NeutronAgentEventChecks(
-                                                      searchobj=FileSearcher())
+        inst = agent.events.NeutronAgentEventChecks(searchobj=FileSearcher())
         inst.run_checks()
         actual = self.part_output_to_actual(inst.output)
         self.assertEqual(actual.get(section_key), expected)
@@ -911,8 +909,7 @@ class TestOpenstackAgentEvents(TestOpenstackBase):
                     }
         for section_key in ["octavia-worker", "octavia-health-manager"]:
             sobj = FileSearcher()
-            inst = agent.events.OctaviaAgentEventChecks(
-                                                            searchobj=sobj)
+            inst = agent.events.OctaviaAgentEventChecks(searchobj=sobj)
             inst.run_checks()
             actual = self.part_output_to_actual(inst.output)
             self.assertEqual(actual["octavia"].get(section_key),
@@ -993,8 +990,7 @@ class TestOpenstackAgentEvents(TestOpenstackBase):
         actual = self.part_output_to_actual(inst.output)
         self.assertEqual(actual["neutron-l3ha"], expected)
 
-    @mock.patch.object(agent.events, "VRRP_TRANSITION_WARN_THRESHOLD",
-                       0)
+    @mock.patch.object(agent.events, "VRRP_TRANSITION_WARN_THRESHOLD", 0)
     def test_run_neutron_l3ha_checks_w_issue(self):
         HotSOSConfig.use_all_logs = False
         expected = {'keepalived': {

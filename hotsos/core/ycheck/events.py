@@ -1,3 +1,5 @@
+from searchkit.utils import MPCache
+
 from hotsos.core.log import log
 from hotsos.core.config import HotSOSConfig
 from hotsos.core.utils import sorted_dict
@@ -191,7 +193,8 @@ class YEventCheckerBase(YHandlerBase, EventProcessingUtils):
         super().__init__(*args, **kwargs)
         self.callback_helper = callback_helper
         self.__event_defs = {}
-        self.__final_event_results = None
+        self.cache = MPCache("event_{}".format(self._yaml_defs_group),
+                             'events', HotSOSConfig.global_tmp_dir)
 
     def _load_event_definitions(self):
         """
@@ -273,7 +276,7 @@ class YEventCheckerBase(YHandlerBase, EventProcessingUtils):
         """
         This is a cache of the results obtained by running run().
         """
-        return self.__final_event_results
+        return self.cache.get(self._yaml_defs_group)
 
     def run(self, results):
         """
@@ -281,8 +284,8 @@ class YEventCheckerBase(YHandlerBase, EventProcessingUtils):
 
         See defs/events.yaml for definitions.
         """
-        if self.__final_event_results:
-            return self.__final_event_results
+        if self.final_event_results:
+            return self.final_event_results
 
         if not self.callback_helper.callbacks:
             raise Exception("need to register at least one callback for "
@@ -346,5 +349,5 @@ class YEventCheckerBase(YHandlerBase, EventProcessingUtils):
                     info[out_key] = ret
 
         if info:
-            self.__final_event_results = info
+            self.cache.set(self._yaml_defs_group, info)
             return info
