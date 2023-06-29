@@ -1,0 +1,21 @@
+vars:
+  kernel_version: '@hotsos.core.plugins.kernel.KernelBase.version'
+  net_config: '@hotsos.core.plugins.openstack.neutron.Config.'
+checks:
+  is_neutron_ml2_ovs:
+    systemd:
+      neutron-server: enabled
+  has_vlan_provider_networks:
+    varsops: [[], []]
+  has_ice_driver:
+    varops: [[], []]
+  has_kernel_version:
+    varops: [[$kernel_version], [eq, '5.4']]
+   
+conlusions:
+  boom:
+    decision: has-issue
+    raises:
+      type: OpenstackWarning
+      message: >-
+        foo
