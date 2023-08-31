@@ -23,11 +23,12 @@ class IssueContext(object):
 
 
 class IssueEntryBase(abc.ABC):
-    def __init__(self, ref, description, key, context=None):
+    def __init__(self, ref, description, key, context=None, kb_article=None):
         self.key = key
         self.context = context
         self.ref = ref
         self.description = description
+        self.kb_article = kb_article
         self.origin = "{}.{}".format(HotSOSConfig.plugin_name,
                                      HotSOSConfig.part_name)
 
@@ -43,6 +44,7 @@ class IssueEntry(IssueEntryBase):
     def content(self):
         _content = {self.key: self.ref,
                     'desc': self.description,
+                    'knowledgebase': self.kb_article,
                     'origin': self.origin}
         if HotSOSConfig.machine_readable:
             if len(self.context or {}):

@@ -4,8 +4,9 @@ import abc
 class IssueTypeBase(object):
     ISSUE_TYPE = 'issue'
 
-    def __init__(self, msg):
+    def __init__(self, msg, knowledgebase=None):
         self.msg = msg
+        self.knowledgebase = knowledgebase
 
     @property
     def name(self):
@@ -15,8 +16,8 @@ class IssueTypeBase(object):
 class BugTypeBase(abc.ABC, IssueTypeBase):
     ISSUE_TYPE = 'bug'
 
-    def __init__(self, bug_id, msg):
-        super().__init__(msg)
+    def __init__(self, bug_id, msg, knowledgebase=None):
+        super().__init__(msg, knowledgebase)
         self.id = bug_id
 
     @property

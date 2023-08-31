@@ -9,7 +9,7 @@ conclusions:
     raises:
       type: LaunchpadBug
       bug-id: 1996230
+      knowledgebase: Command-juju-run--machine-times-out
       message: >-
-        There are inconsistencies in the actionnotifications mongodb collection. See
-        https://canonical.lightning.force.com/lightning/r/Knowledge__kav/ka44K000000PRFmQAO/view
-        for instructions on how to fix.
+        There are inconsistencies in the actionnotifications mongodb
+        collection. See the linked KB for instructions on how to fix.

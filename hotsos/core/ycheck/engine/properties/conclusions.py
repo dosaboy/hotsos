@@ -38,6 +38,15 @@ class YPropertyRaises(YPropertyOverrideBase):
         return self.content.get('bug-id')
 
     @property
+    def knowledgebase(self):
+        """ optional setting. do this to allow querying. """
+        article = self.content.get('knowledgebase')
+        if article:
+            article_prefix = ('https://portal.support.canonical.com/'
+                              'selfservice/s/article/')
+            return "{}{}".format(article_prefix, article)
+
+    @property
     def message(self):
         """ optional setting. do this to allow querying. """
         return self.content.get('message')
@@ -194,10 +203,11 @@ class YPropertyConclusion(YPropertyMappedOverrideBase):
             raise ScenarioException(msg)
 
         message = self.raises.message_formatted(checks=checks)
+        kb = self.raises.knowledgebase
         if self.raises.type.ISSUE_TYPE == 'bug':
-            self.issue = self.raises.type(self.raises.bug_id, message)
+            self.issue = self.raises.type(self.raises.bug_id, message, kb)
         else:
-            self.issue = self.raises.type(message)
+            self.issue = self.raises.type(message, kb)
 
         return result
 
