@@ -38,4 +38,3 @@ disable=
  too-many-locals,
  unnecessary-lambda,
  unspecified-encoding,
- unused-private-member,
