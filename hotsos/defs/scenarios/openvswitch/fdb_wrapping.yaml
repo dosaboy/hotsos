@@ -1,6 +1,5 @@
 vars:
-  is_fdb_full: '@hotsos.core.plugins.openvswitch.OVSFDBStats.fdbfull'
-  fdb_full_bridges: '@hotsos.core.plugins.openvswitch.OVSFDBStats.affected_bridges'
+  bridges_with_fdb_overflow: '@hotsos.core.plugins.openvswitch.OVSFDBStats.bridges_with_fdb_overflow'
   fdb_full_msg_part1: >-
     The FDB table for bridge(s)
   fdb_full_msg_part2: >-
@@ -11,7 +10,7 @@ vars:
     for more details.
 checks:
   fdb_is_full:
-    varops: [[$is_fdb_full], [eq, true]]
+    varops: [[$bridges_with_fdb_overflow], [length_hint]]
 conclusions:
   fdb_is_wrapping:
     decision: fdb_is_full
@@ -22,4 +21,4 @@ conclusions:
       format-dict:
         part1: $fdb_full_msg_part1
         part2: $fdb_full_msg_part2
-        bridges: $fdb_full_bridges
+        bridges: '$bridges_with_fdb_overflow:comma_join'

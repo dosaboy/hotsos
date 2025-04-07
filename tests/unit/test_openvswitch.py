@@ -305,8 +305,7 @@ class TestOVSFDBStats(TestOpenvswitchBase):
                               'ovs-vsctl_-t_5_list-br'): 'br-ex'})
     def test_ovs_fdb_full(self):
         fdbstats = OVSFDBStats()
-        self.assertEqual(fdbstats.fdbfull, True)
-        self.assertEqual(fdbstats.affected_bridges, 'br-ex')
+        self.assertEqual(fdbstats.bridges_with_fdb_overflow, ['br-ex'])
 
     @utils.create_data_root({('sos_commands/openvswitch/'
                               'ovs-appctl_fdb.stats-show_br-ex'):
@@ -315,8 +314,7 @@ class TestOVSFDBStats(TestOpenvswitchBase):
                               'ovs-vsctl_-t_5_list-br'): 'br-ex'})
     def test_ovs_fdb_not_full(self):
         fdbstats = OVSFDBStats()
-        self.assertEqual(fdbstats.fdbfull, False)
-        self.assertEqual(fdbstats.affected_bridges, '')
+        self.assertEqual(fdbstats.bridges_with_fdb_overflow, [])
 
 
 class TestOpenvswitchDB(TestOpenvswitchBase):

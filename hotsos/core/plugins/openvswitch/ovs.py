@@ -178,45 +178,38 @@ class OpenvSwitchBase():
 
 
 class OVSFDBStats(OpenvSwitchBase):
-    """
-    OVS Forwarding DataBase statistics
+    """ Interface to OVS Forwarding DataBase statistics. """
+    @cached_property
+    def bridges_with_fdb_overflow(self):
+        """
+        Check each bridge using 'ovs-appctl fdb/stats-show <br name>' to see if
+        its current MAC entries count is greater than the maximum allowed. If
+        current >= maximum, it means the FDB is full and we return a list of
+        affected bridges.
 
-    The 'ovs-vsctl -t 5 list-br' command output is used to get bridge names.
-    Next, for each existing bridge, the 'ovs-appctl fdb/stats-show <br name>'
-    output is checked for the current and maximum MAC entries. If current
-    equals maximum, it means that the FDB is full. Then the code sets
-    the 'fdbfull' class field to True. If a full FDB was found,
-    the 'affected_bridges' class field will contain  a list of the affected
-    bridges.
+        @return: list of bridges with full FDB.
+        """
+        expr = r'\s*Current/maximum MAC entries in the table: (\d+)/(\d+)'
+        searcher = FileSearcher()
+        with CLIHelperFile() as cli:
+            for bridge in self.bridges:
+                log.info("Checking FDB for bridge '%s'", bridge.name)
+                searcher.add(SearchDef(expr, tag=bridge.name),
+                             cli.ovs_appctl(command='fdb/stats-show',
+                                            args=bridge.name))
 
-    """
-    def __init__(self, *args, global_searcher=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields = {'fdbfull': False, 'affected_bridges': ''}
-        _bridges = []
-        for bridge in self.bridges:
-            log.info("Checking FDB for bridge '%s'", bridge.name)
-            out = self.cli.ovs_appctl(command='fdb/stats-show',
-                                      args=bridge.name)
-            cexpr = re.compile(
-                r'\s*Current/maximum MAC entries in the table: (\S+)')
-            for line in out:
-                ret = re.match(cexpr, line)
-                if ret:
-                    current, maximum = ret.group(1).split('/')
-                    log.debug("Bridge '%s', FDB size: current='%s' max='%s'",
-                              bridge.name, current, maximum)
-                    # Testing for the FDB table full condition
-                    if int(current) >= int(maximum):
-                        self.fields['fdbfull'] = True
-                        _bridges.append(bridge.name)
-            if len(_bridges) > 0:
-                self.fields['affected_bridges'] = ', '.join(_bridges)
+            results = searcher.run().all
+            bridges = []
+            for r in results:
+                bridge = r.tag
+                current, maximum = int(r.get(1)), int(r.get(2))
+                log.debug("Bridge '%s', FDB size: current='%s' max='%s'",
+                          bridge, current, maximum)
+                # Testing for the FDB table full condition
+                if current >= maximum:
+                    bridges.append(bridge)
 
-    def __getattr__(self, key):
-        if key in self.fields:
-            return self.fields[key]
-        return None
+        return bridges
 
 
 class OVSBFDSearch(OpenvSwitchGlobalSearchBase):
