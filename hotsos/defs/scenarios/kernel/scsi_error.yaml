@@ -1,0 +1,70 @@
+checks:
+  scsi_failed_result:
+    input:
+      path: 'var/log/kern.log'
+    # Matches SCSI command failures from scsi_print_result() e.g.:
+    # sd 0:0:11:0: [sdh] tag#2712 FAILED Result: hostbyte=DID_OK driverbyte=DRIVER_SENSE
+    expr: '.* kernel: \[.*\] sd \S+: \[([^\]]+)\] \S+ FAILED Result: hostbyte=(\S+) driverbyte=(\S+)'
+  scsi_device_offlined:
+    input:
+      path: 'var/log/kern.log'
+    # Matches device offline from scsi_eh_offline_sdevs() in scsi_error.c e.g.:
+    # sd 0:0:11:0: Device offlined - not ready after error recovery
+    expr: '.* kernel: \[.*\] sd (\S+): Device offlined - not ready after error recovery'
+  scsi_medium_error:
+    input:
+      path: 'var/log/kern.log'
+    # Matches SCSI Medium Error sense key from scsi_log_print_sense_hdr() e.g.:
+    # sd 0:0:11:0: [sdh] tag#2712 Sense Key : Medium Error [current]
+    expr: '.* kernel: \[.*\] sd \S+: \[([^\]]+)\] \S+ Sense Key : Medium Error \[current\]'
+  scsi_hardware_error:
+    input:
+      path: 'var/log/kern.log'
+    # Matches SCSI Hardware Error sense key from scsi_log_print_sense_hdr() e.g.:
+    # sd 0:0:11:0: [sdh] tag#2712 Sense Key : Hardware Error [current]
+    expr: '.* kernel: \[.*\] sd \S+: \[([^\]]+)\] \S+ Sense Key : Hardware Error \[current\]'
+conclusions:
+  scsi_device_offline:
+    priority: 3
+    decision: scsi_device_offlined
+    raises:
+      type: KernelError
+      message: >-
+        SCSI device {dev} has been offlined after error recovery failed.
+        The device is no longer accessible and may need replacement or
+        manual intervention.
+      format-dict:
+        dev: '@checks.scsi_device_offlined.search.results_group_1:unique_comma_join'
+  scsi_medium_err:
+    priority: 2
+    decision: scsi_medium_error
+    raises:
+      type: KernelWarning
+      message: >-
+        SCSI Medium Error detected for device {dev}. This typically
+        indicates disk surface or media issues.
+      format-dict:
+        dev: '@checks.scsi_medium_error.search.results_group_1:unique_comma_join'
+  scsi_hardware_err:
+    priority: 2
+    decision: scsi_hardware_error
+    raises:
+      type: KernelWarning
+      message: >-
+        SCSI Hardware Error detected for device {dev}. This typically
+        indicates a failing disk or controller issue.
+      format-dict:
+        dev: '@checks.scsi_hardware_error.search.results_group_1:unique_comma_join'
+  scsi_error:
+    priority: 1
+    decision: scsi_failed_result
+    raises:
+      type: KernelWarning
+      message: >-
+        SCSI error detected for device {dev} (hostbyte={hostbyte},
+        driverbyte={driverbyte}). This may indicate a hardware issue
+        with the disk or controller.
+      format-dict:
+        dev: '@checks.scsi_failed_result.search.results_group_1:unique_comma_join'
+        hostbyte: '@checks.scsi_failed_result.search.results_group_2:unique_comma_join'
+        driverbyte: '@checks.scsi_failed_result.search.results_group_3:unique_comma_join'

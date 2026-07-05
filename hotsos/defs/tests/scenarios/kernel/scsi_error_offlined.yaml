@@ -1,0 +1,13 @@
+target-name: scsi_error.yaml
+data-root:
+  files:
+    var/log/kern.log: |
+     Jun 06 10:18:14 sf-sby001-hc0120-rack013 kernel: [  725.797102] sd 0:0:11:0: [sdh] tag#2712 FAILED Result: hostbyte=DID_ERROR driverbyte=DRIVER_OK
+     Jun 06 10:18:14 sf-sby001-hc0120-rack013 kernel: [  725.797103] sd 0:0:11:0: Device offlined - not ready after error recovery
+  copy-from-original:
+    - sos_commands/date/date
+raised-issues:
+  KernelError: >-
+    SCSI device 0:0:11:0 has been offlined after error recovery failed.
+    The device is no longer accessible and may need replacement or
+    manual intervention.

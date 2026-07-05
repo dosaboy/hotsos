@@ -1,0 +1,14 @@
+target-name: scsi_error.yaml
+data-root:
+  files:
+    var/log/kern.log: |
+     Jun 06 10:18:14 sf-sby001-hc0120-rack013 kernel: [  725.797102] sd 0:0:11:0: [sdh] tag#2712 FAILED Result: hostbyte=DID_OK driverbyte=DRIVER_SENSE
+     Jun 06 10:18:14 sf-sby001-hc0120-rack013 kernel: [  725.797103] sd 0:0:11:0: [sdh] tag#2712 Sense Key : Medium Error [current]
+     Jun 06 10:18:14 sf-sby001-hc0120-rack013 kernel: [  725.797104] sd 0:0:11:0: [sdh] tag#2712 Add. Sense: Unrecovered read error
+     Jun 06 10:18:14 sf-sby001-hc0120-rack013 kernel: [  725.797105] sd 0:0:11:0: [sdh] tag#2712 CDB: Read(10) 28 00 00 85 1f 80 00 00 80 00
+  copy-from-original:
+    - sos_commands/date/date
+raised-issues:
+  KernelWarning: >-
+    SCSI Medium Error detected for device sdh. This typically indicates
+    disk surface or media issues.

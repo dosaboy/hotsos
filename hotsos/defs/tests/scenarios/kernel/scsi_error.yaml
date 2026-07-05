@@ -1,0 +1,14 @@
+data-root:
+  files:
+    var/log/kern.log: |
+     Jun 06 10:18:14 sf-sby001-hc0120-rack013 kernel: [  725.797102] sd 0:0:11:0: [sdh] tag#2712 FAILED Result: hostbyte=DID_OK driverbyte=DRIVER_SENSE
+     Jun 06 10:18:14 sf-sby001-hc0120-rack013 kernel: [  725.797103] sd 0:0:11:0: [sdh] tag#2712 Sense Key : Aborted Command [current]
+     Jun 06 10:18:14 sf-sby001-hc0120-rack013 kernel: [  725.797104] sd 0:0:11:0: [sdh] tag#2712 Add. Sense: No additional sense information
+     Jun 06 10:18:14 sf-sby001-hc0120-rack013 kernel: [  725.797105] sd 0:0:11:0: [sdh] tag#2712 CDB: Write(10) 2a 00 a3 39 c1 d8 00 00 08 00
+  copy-from-original:
+    - sos_commands/date/date
+raised-issues:
+  KernelWarning: >-
+    SCSI error detected for device sdh (hostbyte=DID_OK,
+    driverbyte=DRIVER_SENSE). This may indicate a hardware issue with
+    the disk or controller.
