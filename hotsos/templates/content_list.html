@@ -1,7 +1,9 @@
 {%- if list_elements %}
-<ul>
+<ul class="p-list hs-tree hs-list--compact">
 {% for item in list_elements -%}
-<li>
+<li class="p-list__item hs-tree__item">
+<span class="hs-list-bullet" aria-hidden="true">- </span>
+{% if item is string and item.lstrip().startswith('-') %}&nbsp;&nbsp;{% endif %}
 {{ item }}
 </li>
 {%- endfor %}

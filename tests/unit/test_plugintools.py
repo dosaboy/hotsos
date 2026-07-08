@@ -7,145 +7,11 @@ from unittest import mock
 from hotsos.client import OutputManager, OutputBuilder
 from hotsos.core.host_helpers.cli import CLIHelper
 from hotsos.core.issues import IssuesManager
-from hotsos.core import plugintools
 
 from . import utils
 
 # It is fine for a test to access a protected member so allow it for all tests
 # pylint: disable=protected-access
-
-HTML1 = """<ul class="tree">
-<li>
-<details>
-<summary>item-1</summary>
-<ul >
-<li>
-<b>level-2</b>
-
-<ul>
-<li>
-value-1
-</li><li>
-value-2
-</li><li>
-value-3
-</li><li>
-value-4
-</li>
-</ul>
-</li>
-<li>
-<b>level-3</b>
-plain value
-</li>
-</ul>
-</details>
-</li>
-<li>
-<details>
-<summary>item-2</summary>
-
-<ul>
-<li>
-a
-</li><li>
-b
-</li><li>
-c
-</li>
-</ul>
-</details>
-</li>
-</ul>"""
-
-HTML2 = """<ul class="tree">
-<li>
-<details>
-<summary>item-1</summary>
-<ul >
-<li>
-<b>level-2</b>
-
-<ul>
-<li>
-value-1
-</li><li>
-value-2
-</li><li>
-value-3
-</li><li>
-value-4
-</li>
-</ul>
-</li>
-<li>
-<b>level-3</b>
-plain value
-</li>
-</ul>
-</details>
-</li>
-<li>
-<details>
-<summary>item-2</summary>
-
-<ul>
-<li>
-a
-</li><li>
-b
-</li><li>
-c
-</li>
-</ul>
-</details>
-</li>
-</ul>"""
-
-HTML3 = """<ul class="tree">
-<li>
-<details>
-<summary>item-1</summary>
-<ul >
-<li>
-<b>level-2</b>
-
-<ul>
-<li>
-value-1
-</li><li>
-value-2
-</li><li>
-value-3
-</li><li>
-value-4
-</li>
-</ul>
-</li>
-<li>
-<b>level-3</b>
-plain value
-</li>
-</ul>
-</details>
-</li>
-<li>
-<details>
-<summary>item-2</summary>
-
-<ul>
-<li>
-a
-</li><li>
-b
-</li><li>
-c
-</li>
-</ul>
-</details>
-</li>
-</ul>"""
-
 
 ISSUES_LEGACY_FORMAT = {
     'testplugin': {
@@ -261,7 +127,6 @@ plain value
         self.assertEqual(filtered, expected)
 
     def test_apply_output_formatting_html_1(self):
-        htmlout = plugintools.HTMLFormatter(CLIHelper().hostname())
         summary = {
             'item-1':
                 {
@@ -276,12 +141,14 @@ plain value
             'item-2':
                 ['a', 'b', 'c'],
         }
-        expected = htmlout.header + HTML1 + htmlout.footer
         filtered = OutputManager(summary).get_builder().to(fmt="html")
-        self.assertEqual(filtered, expected)
+        self.assertIn('vanilla-framework-version-', filtered)
+        self.assertIn('p-side-navigation', filtered)
+        self.assertIn('id="item-1"', filtered)
+        self.assertIn('id="item-2"', filtered)
+        self.assertIn('value-4', filtered)
 
     def test_apply_output_formatting_html_2(self):
-        htmlout = plugintools.HTMLFormatter(CLIHelper().hostname())
         summary = {
             'item-1':
                 {
@@ -296,15 +163,14 @@ plain value
             'item-2':
                 ['a', 'b', 'c'],
         }
-        expected = htmlout.header + HTML2 + htmlout.footer
         filtered = OutputManager(summary).get_builder().to(fmt="html")
-        self.assertEqual(filtered, expected)
+        self.assertIn('Known issues/bugs', filtered)
 
     def test_apply_output_formatting_html_3(self):
-        htmlout = plugintools.HTMLFormatter(CLIHelper().hostname())
         summary = {
-            'item-1':
+            'system':
                 {
+                    'hostname': 'compute4',
                     'level-2': [
                         'value-1',
                         'value-2',
@@ -316,9 +182,10 @@ plain value
             'item-2':
                 ['a', 'b', 'c'],
         }
-        expected = htmlout.header + HTML3 + htmlout.footer
         filtered = OutputManager(summary).get_builder().to(fmt="html")
-        self.assertEqual(filtered, expected)
+        self.assertIn(f'Host: <strong>{CLIHelper().hostname()}</strong>',
+                      filtered)
+        self.assertIn('Generated ', filtered)
 
 
 class TestOutputManagerLogile(utils.BaseTestCase):

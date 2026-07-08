@@ -15,6 +15,7 @@ from hotsos.core.host_helpers.cli import CLIHelper
 from hotsos.core.issues import IssuesManager
 from hotsos.core.log import log
 from hotsos.core import plugintools
+from hotsos.core import formatters
 from hotsos.core.exceptions import UnsupportedFormatError
 
 
@@ -151,12 +152,8 @@ class OutputBuilder:
 
         raise UnsupportedFormatError(fmt)
 
-    def to_html(self, *, max_level=2, html_escape=False):
-        hostname = CLIHelper().hostname() or ""
-        result = plugintools.HTMLFormatter(
-            hostname=hostname,
-            max_level=max_level
-        ).dump(self.content)
+    def to_html(self, *, html_escape=False):
+        result = formatters.HTMLFormatter().dump(self.content)
 
         return result if not html_escape else html.escape(result)
 
@@ -164,7 +161,7 @@ class OutputBuilder:
         return json.dumps(self.content, indent=2, sort_keys=True)
 
     def to_yaml(self):
-        return plugintools.yaml_dump(self.content)
+        return formatters.yaml_dump(self.content)
 
     def to_markdown(self):
         return plugintools.MarkdownFormatter().dump(self.content)

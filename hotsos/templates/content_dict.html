@@ -1,15 +1,24 @@
-<ul {{ class }}>
-{%- for key, value in dict_elements.items() %}
-<li>
-{%- if collapsible %}
-<details>
-<summary>{{ key }}</summary>
-{{ value }}
-</details>
-{%- else %}
-<b>{{ key }}</b>
-{{ value }}
+{%- if fields %}
+<dl class="hs-fields hs-fields--compact">
+{%- for field in fields %}
+<div class="hs-field">
+<dt class="hs-field__key">{{ field.key }}</dt>
+<dd class="hs-field__value">{{ field.value }}</dd>
+</div>
+{%- endfor %}
+</dl>
 {%- endif %}
+{%- if branches %}
+<ul class="p-list hs-tree hs-tree--level-{{ level }} hs-list--compact">
+{%- for element in branches %}
+<li class="p-list__item hs-tree__item{% if element.tone %} hs-tree__item--{{ element.tone }}{% endif %}">
+<details class="hs-tree__details"{% if element.open %} open{% endif %}>
+<summary>
+<span class="hs-tree__key">{{ element.key }}</span>
+</summary>
+{{ element.content }}
+</details>
 </li>
 {%- endfor %}
 </ul>
+{%- endif %}

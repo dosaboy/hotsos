@@ -1,0 +1,282 @@
+<header class="hs-hero">
+  <div class="row">
+    <div class="col-8">
+      <span class="hs-hero__eyebrow"><span class="hs-hero__spark"></span> HotSOS &middot; system analysis</span>
+      <h1 class="p-heading--2">HotSOS <strong>Summary Dashboard</strong></h1>
+      <p class="p-heading--5 u-no-margin--bottom" style="color: rgba(255,255,255,0.85); font-weight: 300;">
+        Repeatable analysis of cloud subsystems, surfacing key state, known bugs and potential issues.
+      </p>
+      <div class="hs-hero__meta">
+        <span>Host: <strong>{{ hostname }}</strong></span>
+        <span>Generated {{ generated_at }}</span>
+      </div>
+    </div>
+    <div class="col-4 u-align--right u-vertically-center">
+      <div class="hs-status hs-status--{{ health.tone }}">
+        <span class="hs-status__dot"></span>
+        <span>
+          <span class="hs-status__label">{{ health.status }}</span>
+          <span class="hs-status__detail">{{ health.detail }}</span>
+        </span>
+      </div>
+    </div>
+  </div>
+  {% if system_info %}
+  <div class="row">
+    <div class="col-12">
+      <dl class="hs-hero__facts" aria-label="Key system information">
+        {% for fact in system_info %}
+        <div class="hs-fact">
+          <dt class="hs-fact__label">{{ fact.label }}</dt>
+          <dd class="hs-fact__value">{{ fact.value }}</dd>
+        </div>
+        {% endfor %}
+      </dl>
+    </div>
+  </div>
+  {% endif %}
+</header>
+
+<div class="row hs-kpis">
+  {% for stat in summary_stats %}
+  <div class="col-3">
+    {% if stat.label == 'Plugins' %}
+    <a class="hs-kpi__link" href="#hs-plugins" aria-label="Jump to plugin details section">
+    <div class="hs-kpi__card hs-kpi__card--{{ stat.tone }}">
+      <span class="hs-kpi__label">{{ stat.label }}</span>
+      <span class="hs-kpi__value">{{ stat.value }}</span>
+    </div>
+    </a>
+    {% else %}
+    <div class="hs-kpi__card hs-kpi__card--{{ stat.tone }}">
+      <span class="hs-kpi__label">{{ stat.label }}</span>
+      <span class="hs-kpi__value">{{ stat.value }}</span>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row">
+  <div class="col-12">
+    {% if findings %}
+    <section class="hs-findings" id="hs-findings">
+      <div class="hs-findings__bar">
+        <h2 class="p-heading--4 hs-findings__title">
+          Detected issues &amp; bugs
+          <span class="hs-badge hs-badge--negative">{{ findings | length }}</span>
+        </h2>
+        <div class="p-segmented-control hs-severity" role="group" aria-label="Filter findings by severity">
+          <div class="p-segmented-control__list">
+            <button type="button" class="p-segmented-control__button is-selected" data-severity="all" aria-pressed="true">
+              All <span class="hs-severity__count">{{ finding_counts.all }}</span>
+            </button>
+            <button type="button" class="p-segmented-control__button" data-severity="high" aria-pressed="false"{% if not finding_counts.high %} disabled{% endif %}>
+              High <span class="hs-severity__count">{{ finding_counts.high }}</span>
+            </button>
+            <button type="button" class="p-segmented-control__button" data-severity="medium" aria-pressed="false"{% if not finding_counts.medium %} disabled{% endif %}>
+              Medium <span class="hs-severity__count">{{ finding_counts.medium }}</span>
+            </button>
+            <button type="button" class="p-segmented-control__button" data-severity="low" aria-pressed="false"{% if not finding_counts.low %} disabled{% endif %}>
+              Low <span class="hs-severity__count">{{ finding_counts.low }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div id="hs-findings-list">
+      {% for finding in findings %}
+      <div class="hs-finding hs-finding--{{ finding.severity }}{% if finding.tone == 'bug' %} hs-finding--bug{% endif %}" data-tone="{{ finding.tone }}" data-severity="{{ finding.severity }}">
+        <span class="hs-finding__tag">{{ finding.severity | capitalize }}</span>
+        <div class="hs-finding__head">
+          <span class="hs-finding__plugin">{{ finding.plugin }}</span>
+          <span class="hs-finding__category">
+            {%- if finding.category.startswith('http') -%}
+            <a href="{{ finding.category }}" rel="noopener noreferrer" target="_blank">{{ finding.category }}</a>
+            {%- else -%}
+            {{ finding.category }}
+            {%- endif -%}
+          </span>
+        </div>
+        <p class="hs-finding__message">{{ finding.message }}</p>
+      </div>
+      {% endfor %}
+      </div>
+      <p class="hs-findings__empty u-text--muted" id="hs-findings-empty" hidden>No findings match the selected severity.</p>
+    </section>
+    {% else %}
+    <div class="p-notification--positive">
+      <div class="p-notification__content">
+        <h2 class="p-notification__title">All clear</h2>
+        <p class="p-notification__message">No known bugs or potential issues were detected across the analysed plugins.</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12">
+    <div class="hs-toolbar">
+      <div class="hs-toolbar__controls">
+        <div class="hs-toolbar__field hs-toolbar__search">
+          <label for="hs-plugin-search">Filter plugins</label>
+          <form class="p-search-box" role="search" onsubmit="return false;">
+            <input type="search" id="hs-plugin-search" class="p-search-box__input" name="search" placeholder="Search plugins&hellip;" autocomplete="off" aria-label="Filter plugins by name">
+            <button type="reset" class="p-search-box__reset" aria-label="Clear filter">
+              <i class="p-icon--close">Clear</i>
+            </button>
+            <button type="submit" class="p-search-box__button" aria-label="Search">
+              <i class="p-icon--search">Search</i>
+            </button>
+          </form>
+        </div>
+        <div class="hs-toolbar__field hs-toolbar__filter">
+          <label for="hs-plugin-filter">Filter by status</label>
+          <select id="hs-plugin-filter" name="status-filter">
+            <option value="all">All plugins</option>
+            <option value="issues">With issues or bugs</option>
+            <option value="bugs">With known bugs</option>
+            <option value="clean">Healthy only</option>
+          </select>
+        </div>
+      </div>
+      <p class="hs-toolbar__count u-no-margin--bottom u-text--muted"><span id="hs-plugin-count">{{ sections | length }}</span> plugin(s) analysed</p>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <aside class="col-3">
+    <nav class="p-side-navigation hs-nav" aria-label="Summary plugins">
+      <p class="hs-nav__heading">Plugins</p>
+      <ul class="p-side-navigation__list hs-nav__list hs-list--compact">
+        {% for section in sections %}
+        <li>
+          <a class="hs-nav__link{% if section.issues %} hs-nav__link--alert{% endif %}" href="#{{ section.id }}" data-nav="{{ section.name | lower }}">
+            <span>{{ section.name }}</span>
+            <span class="hs-nav__count">{% if section.issues %}{{ section.issues }}{% else %}{{ section.items }}{% endif %}</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </nav>
+  </aside>
+  <main class="col-9" id="hs-plugins">
+    {% if sections %}
+    {% for section in sections %}
+    <article class="hs-section{% if section.issues %} hs-section--alert{% endif %}" id="{{ section.id }}" data-plugin="{{ section.name | lower }}" data-bugs="{{ section.bugs | default(0) }}" data-issues="{{ section.issues | default(0) }}">
+      <div class="hs-section__header">
+        <span class="hs-section__mono" aria-hidden="true">{{ section.monogram }}</span>
+        <div class="hs-section__titles">
+          <h2 class="hs-section__name">{{ section.name }}</h2>
+          <p class="hs-section__meta">{{ section.items }} top-level item(s) &middot; {{ section.leaves }} value(s)</p>
+        </div>
+        <div class="hs-section__badges">
+          {% if section.bugs %}<span class="hs-badge hs-badge--bug">{{ section.bugs }} bug(s)</span>{% endif %}
+          {% if section.warnings %}<span class="hs-badge hs-badge--issue">{{ section.warnings }} issue(s)</span>{% endif %}
+        </div>
+      </div>
+      <div class="hs-section__body">
+        {{ section.content | safe }}
+      </div>
+    </article>
+    {% endfor %}
+    <div class="hs-empty" id="hs-no-results" hidden>
+      <p class="u-no-margin--bottom">No plugins match your filter.</p>
+    </div>
+    {% else %}
+    <div class="p-notification--information">
+      <div class="p-notification__content">
+        <p class="p-notification__message">No summary content available.</p>
+      </div>
+    </div>
+    {% endif %}
+  </main>
+</div>
+
+<script>
+  (function () {
+    var search = document.getElementById('hs-plugin-search');
+    if (!search) { return; }
+    var statusFilter = document.getElementById('hs-plugin-filter');
+    var sections = Array.prototype.slice.call(
+      document.querySelectorAll('#hs-plugins .hs-section'));
+    var navItems = Array.prototype.slice.call(
+      document.querySelectorAll('.hs-nav__link'));
+    var counter = document.getElementById('hs-plugin-count');
+    var empty = document.getElementById('hs-no-results');
+
+    function matchesStatus(section, status) {
+      var bugs = parseInt(section.getAttribute('data-bugs') || '0', 10);
+      var issues = parseInt(section.getAttribute('data-issues') || '0', 10);
+      if (status === 'bugs') { return bugs > 0; }
+      if (status === 'issues') { return (bugs + issues) > 0; }
+      if (status === 'clean') { return (bugs + issues) === 0; }
+      return true;
+    }
+
+    function applyFilter() {
+      var term = search.value.trim().toLowerCase();
+      var status = statusFilter ? statusFilter.value : 'all';
+      var visible = 0;
+      var visibleNames = {};
+      sections.forEach(function (section) {
+        var name = section.getAttribute('data-plugin') || '';
+        var match = name.indexOf(term) !== -1 && matchesStatus(section, status);
+        section.classList.toggle('is-hidden', !match);
+        if (match) { visible += 1; visibleNames[name] = true; }
+      });
+      navItems.forEach(function (link) {
+        var name = link.getAttribute('data-nav') || '';
+        link.parentNode.style.display = visibleNames[name] ? '' : 'none';
+      });
+      if (counter) { counter.textContent = visible; }
+      if (empty) { empty.hidden = visible !== 0; }
+    }
+
+    search.addEventListener('input', applyFilter);
+    if (statusFilter) { statusFilter.addEventListener('change', applyFilter); }
+
+    var form = search.closest('form');
+    if (form) {
+      // The p-search-box reset button clears the input natively; re-run the
+      // filter afterwards so the plugin list is restored.
+      form.addEventListener('reset', function () {
+        window.setTimeout(applyFilter, 0);
+      });
+    }
+  })();
+
+  (function () {
+    var buttons = Array.prototype.slice.call(
+      document.querySelectorAll('.hs-severity .p-segmented-control__button'));
+    if (!buttons.length) { return; }
+    var findings = Array.prototype.slice.call(
+      document.querySelectorAll('#hs-findings-list .hs-finding'));
+    var empty = document.getElementById('hs-findings-empty');
+
+    function applySeverity(severity) {
+      var visible = 0;
+      findings.forEach(function (finding) {
+        var value = finding.getAttribute('data-severity') || '';
+        var match = severity === 'all' || value === severity;
+        finding.hidden = !match;
+        if (match) { visible += 1; }
+      });
+      if (empty) { empty.hidden = visible !== 0; }
+    }
+
+    buttons.forEach(function (button) {
+      button.addEventListener('click', function () {
+        if (button.disabled) { return; }
+        buttons.forEach(function (other) {
+          var selected = other === button;
+          other.classList.toggle('is-selected', selected);
+          other.setAttribute('aria-pressed', selected ? 'true' : 'false');
+        });
+        applySeverity(button.getAttribute('data-severity') || 'all');
+      });
+    });
+  })();
+</script>
+

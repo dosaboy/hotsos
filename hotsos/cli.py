@@ -6,6 +6,7 @@ import sys
 import tempfile
 import threading
 import warnings
+from pathlib import Path
 from importlib import metadata, resources
 from dataclasses import dataclass, fields
 
@@ -254,6 +255,33 @@ def run_client(arguments, plugins_to_run, data_root_name, logmanager):
         return client.summary
 
 
+def _bash_hyperlink(target, label):
+    """Return an OSC 8 hyperlink string for compatible terminals."""
+    if not sys.stdout.isatty() or os.environ.get('TERM', 'dumb') == 'dumb':
+        return label
+
+    return f"\033]8;;{target}\033\\{label}\033]8;;\033\\"
+
+
+def print_output_summary(output_root, name):
+    """Print a short summary of generated outputs by format."""
+
+    abs_output_root = os.path.abspath(output_root)
+    sys.stdout.write('INFO: available output formats:\n')
+
+    for fmt in SUPPORTED_SUMMARY_FORMATS:
+        summary_path = os.path.join(abs_output_root, f"{name}.summary.{fmt}")
+        if not os.path.exists(summary_path):
+            continue
+
+        summary_url = Path(summary_path).resolve().as_uri()
+        link = _bash_hyperlink(summary_url, fmt)
+        if fmt == 'html':
+            sys.stdout.write(f"  - {link} (click to view dashboard)\n")
+        else:
+            sys.stdout.write(f"  - {link}\n")
+
+
 def init_config(arguments):
     cfg = {'repo_info': get_repo_info(),
            'force_mode': arguments.force,
@@ -461,6 +489,7 @@ def main():
                         output_path=arguments.output_path,
                     )
                     sys.stdout.write(f"INFO: output saved to {path}\n")
+                    print_output_summary(path, drm.basename)
                 else:
                     if arguments.short:
                         minimal_mode = 'short'
