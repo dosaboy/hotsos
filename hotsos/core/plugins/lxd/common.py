@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from functools import cached_property
 
+from hotsos.core.log import log
 from hotsos.core.host_helpers import (
     APTPackageHelper,
     CLIHelperFile,
@@ -27,18 +28,38 @@ class LXD():
         """ Return a list of instance names. """
         _instances = []
         s = FileSearcher()
+        colname = 'NAME'
+        record_expr = r'^\|\s+(\S+)\s+\|\s+(\S+)\s+\|'
         seq = SequenceSearchDef(start=SearchDef(r'^## Instances$'),
-                                body=SearchDef(r'^\|\s+(\S+)\s+\|'),
+                                # NOTE: in 4.x NAME is col 1 but 6.x its col 2
+                                body=SearchDef(record_expr),
                                 end=SearchDef(r'##.*'),
                                 tag='instances')
+        colindex = 1
         with CLIHelperFile() as cli:
             s.add(seq, path=cli.lxd_buginfo())
             results = s.run()
             for section in results.find_sequence_sections(seq).values():
+                header = True
                 for r in section:
-                    if 'body' in r.tag:
-                        if r.get(1) != 'NAME' and r.get(1) != '|':
-                            _instances.append(r.get(1))
+                    if 'body' not in r.tag:
+                        continue
+
+                    if header:
+                        if r.get(colindex) != colname:
+                            colindex += 1
+                            if r.get(colindex) != colname:
+                                log.warning("did not get expected column "
+                                            "header %s - instead got %s",
+                                            colname, r.get(colindex))
+                                break
+
+                        header = False
+                        continue
+
+                    val = r.get(colindex)
+                    if val not in [colname, '|']:
+                        _instances.append(val)
 
         return _instances
 

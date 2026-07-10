@@ -4,6 +4,28 @@ from hotsos.plugin_extensions.lxd import summary
 from . import utils
 
 
+LXD6X_BUGINFO = """
+## Instances
+```
++------------+--------+----------+----------------------+--------------+-----------+-----------+
+|  PROJECT   |  NAME  |  STATE   |         IPV4         |     IPV6     |   TYPE    | SNAPSHOTS |
++------------+---------+---------+----------------------+--------------+-----------+-----------+
+| altproj    | ctr2    | STOPPED |                      |              | CONTAINER | 0         |
++------------+---------+---------+----------------------+--------------+-----------+-----------+
+| default    | testctr | RUNNING | 10.44.9.117 (eth0)   |              | CONTAINER | 0         |
++------------+---------+---------+----------------------+--------------+-----------+-----------+
+```
+
+## Images
+
+"""  # noqa
+
+LXD6X_SNAPS = """
+Name                       Version                         Rev    Tracking         Publisher           Notes
+lxd                        6.9-a34e1d7                     39858  6/stable         canonical✓          -
+"""  # noqa
+
+
 class LXDTestsBase(utils.BaseTestCase):
     """ Custom base testcase that sets lxd plugin context. """
     def setUp(self):
@@ -32,6 +54,14 @@ class TestLXDSummary(LXDTestsBase):
                                      'transient': ['snap.lxd.workaround']}},
 
                     'snaps': ['lxd 4.22 (latest/stable)']}
+        inst = summary.LXDSummary()
+        self.assertEqual(self.part_output_to_actual(inst.output), expected)
+
+    @utils.create_data_root({'sos_commands/lxd/lxd.buginfo': LXD6X_BUGINFO,
+                             'sos_commands/snap/snap_list_--all': LXD6X_SNAPS})
+    def test_summary_keys_lxd_6x(self):
+        expected = {'instances': ['ctr2', 'testctr'],
+                    'snaps': ['lxd 6.9-a34e1d7 (6/stable)']}
         inst = summary.LXDSummary()
         self.assertEqual(self.part_output_to_actual(inst.output), expected)
 
