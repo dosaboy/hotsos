@@ -1,4 +1,7 @@
 #!/bin/bash -u
+
+set -o pipefail
+
 # Text Format
 CSI='\033['
 RES="${CSI}0m"
@@ -67,9 +70,10 @@ test_plugin ()
     diffout=$dtmp/$plugin/fail$label
     if diff $ref_out $test_out &> $diffout; then
         echo -e "$msg [${F_GRN}PASS${RES}]"
+        rm $diffout
     else
         echo -e "$msg [${F_RED}FAIL${RES}]"
-        cat $dtmp/$plugin/fail$label
+        cat $diffout
     fi
 }
 
@@ -80,15 +84,18 @@ echo "INFO: Starting functional tests for plugins: ${PLUGINS[@]}"
 for plugin in ${PLUGINS[@]}; do
     test_plugin $plugin "" ${PLUGIN_ROOTS[$plugin]:-$DEFAULT_DATA_ROOT} &
     test_plugin $plugin short ${PLUGIN_ROOTS[$plugin]:-$DEFAULT_DATA_ROOT} &
-    [[ -r $dtmp/$plugin/fail* ]] && result=false
 done
 
 # wait for all plugin tests
 wait
+
+for plugin in ${PLUGINS[@]}; do
+    (($(find $dtmp/$plugin -name fail\*| wc -l) > 0)) && result=false && break
+done
 
 echo "INFO: testing running hotsos with --save:"
 # do a test run with --save to be sure we havent broken anything
 ./scripts/hotsos --kernel --save --output-path $dtmp
 
 rm -rf $dtmp
-$result
+$result || exit 1

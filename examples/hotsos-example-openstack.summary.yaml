@@ -290,3 +290,8 @@ openstack:
       by a known bug that can cause the agents to become unresponsive in loaded environments.
       See bug for full details. You are recommended to upgrade this package and restart
       neutron agents.
+    https://ubuntu.com/security/CVE-2024-32498: The version of Openstack Nova (2:21.2.3-0ubuntu1)
+      running on this host is impacted by security vulnerability CVE-2024-32498 where
+      a malicious QCOW2 image with an external data file allows an authenticated user
+      to read arbitrary files from the host. There is a fix available in the Ubuntu
+      archives and upgrading is recommended.
