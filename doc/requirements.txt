@@ -1,0 +1,7 @@
+# Documentation build dependencies.
+#
+# canonical-sphinx bundles the Furo theme, MyST parser and the set of Sphinx
+# extensions recommended by Canonical, and applies Canonical branding. The
+# [full] extra pulls in sphinx-design, sphinx-copybutton, sphinx-tabs and the
+# other optional extensions used by these docs.
+canonical-sphinx[full]

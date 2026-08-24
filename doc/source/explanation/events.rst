@@ -20,7 +20,7 @@ event callback.
 The following properties are supported:
 
 * :ref:`Input<input>`
-* :ref:`Search<search>`
+* :ref:`Search<search property>`
 
 Event Callbacks
 ===============
@@ -55,8 +55,8 @@ and group 3 matches a value this can be used as the root key for a tally e.g.
 
 See the class docstring for more information on how to use it.
 
-Examples
-========
+Event Examples
+==============
 
 Two types of searches are available here; single or multi line. A multi-line
 search can be used in two ways; the first use is simply to have a "start" and

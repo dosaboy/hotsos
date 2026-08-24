@@ -1,14 +1,18 @@
+=================
+Shared properties
+=================
+
 NOTE: these properties can be used on their own or in conjunction with others e.g. :ref:`checks`.
 
 Input
 =====
 
-Provides a common way to define input. Takes one or more filesystem
-path or `command <https://github.com/canonical/hotsos/blob/main/hotsos/core/host_helpers/cli.py>`_.
+Provides a common way to define input. Takes one or more filesystem paths or a
+`CLIHelper command <https://github.com/canonical/hotsos/tree/main/hotsos/core/host_helpers/cli>`_.
 When a command is provided, its output is written to a temporary file
 and *input.path* is set to the path of that file.
 
-This property is required by and used as input to the :ref:`search` property.
+This property is required by and used as input to the :ref:`search <search property>` property.
 
 Usage:
 
@@ -24,8 +28,8 @@ Usage:
           key1: val1
         args-callback: import.path.to.method
 
-The *path* and *command* settings are mutually exclusive. A *path* can be a
-single or list of filesystem paths that must be relative to :ref:`Data Root`.
+The ``path`` and ``command`` settings are mutually exclusive. A path can be a
+single filesystem path or a list of paths, all relative to :ref:`Data Root`.
 
 PathFinder
 ----------
@@ -49,31 +53,29 @@ possible paths for every search.
 Logrotate Depth
 ---------------
 
-By default if *--all-logs* is provided to the hotsos client that will apply
-to every *path* but there may be cases where this is not desired and
-*--disable-all-logs* can be used to disable this behaviour for a specific path.
+By default, if ``--all-logs`` is provided to the hotsos client, it applies to
+every path. Set ``options.disable-all-logs`` to ``true`` to disable this
+behaviour for a specific input.
 
 Using Command Output as Input
 -----------------------------
 
-If we want to take input as the output of a command, we can use the
-```command:``` stanza to specify a command that will be executed and its output
-captured.
+To use command output as input, set ``command`` to a method name provided by
+``CLIHelper``. The command is executed and its output is captured in a
+temporary file.
 
-If the command requires some input, both *args* and *kwargs* can be set as a
-list and/or dictionary respectively and will be providing as input to the
-`CLIHelper command <https://github.com/canonical/hotsos/blob/main/hotsos/core/host_helpers/cli.py>`_.
+If the command requires arguments, set ``options.args`` and
+``options.kwargs`` to a list and dictionary respectively.
 
-Sometimes we may way to dynamically generate the input args to *command*. For
-this purpose we can use *args-callback* which is set to the import path of
-a method whose return value must be a  tuple of the form (<list>, <dict>) where
-the list is used as args to the command and dict is kwargs.
+To generate command arguments dynamically, set ``options.args-callback`` to
+the import path of an instance method. The method must take no arguments and
+return a ``(list, dict)`` tuple containing positional and keyword arguments.
 
 Cache keys:
-* cmd_tmp_path
+* ``cmd_tmp_path`` - path to the temporary file containing command output.
 
-Search
-======
+Search property
+===============
 
 Used to define a search using expression(s) and constraints. Different types of
 search expressions that can be used depending on the data being searched and how
@@ -119,18 +121,18 @@ Usage:
         # Default is 1.
         min-results: <int>
         # Search result must be at least this number of hours
-        # after the last boot time.
+        # after the last boot time. Default is 0 (no limit).
         min-hours-since-last-boot: <int>
 
-Search expressions can be defined as a single string or list of strings. If the
-provided string value starts with "@" it will be considered as Python import
-path and imported. This allows for using expressions stored in code.
+Search expressions can be a string or list of strings. Values beginning with
+``$`` resolve a variable. Values beginning with ``@`` are treated as Python
+property import paths. If an ``@`` import cannot be found, the value is used as
+a literal expression.
 
-If you want to analyse logs that contain overlapping sequences, perhaps from
-multiple threads running concurrently, a **passthrough sequence** search is
-used by setting *passthrough-results* to True. This will leverage
-`LogEventStats <https://github.com/canonical/hotsos/tree/main/hotsos/core/analytics.py>`_
-and requires a callback method to be implemented to process the results.
+To analyse logs containing overlapping sequences, perhaps from multiple
+concurrent threads, set ``passthrough-results`` to ``true``. A passthrough
+sequence requires both ``start`` and ``end`` expressions and is consumed by
+the event-processing path.
 
 
 Constraints are used to filter search results and are typically used in
@@ -149,8 +151,10 @@ The above keys are mostly used for internal purposes and the following extra
 entries are added to provide a way to access search results in :ref:`raises`
 (also see :ref:`PropertyCache`):
 
-* search.results_group_<int> - extract the value from result group <int>
-* search.num_results - the number of results found by this search
+* ``search.results_group_<int>`` - values from capture group ``<int>`` across
+  all results. Capture groups are numbered from 1.
+* ``search.num_results`` - the number of results found by this search.
+* ``search.files`` - the files containing one or more search results.
 
 In the following example we demonstrate how to use these keys. A file called
 *var/log/myapp.log* has contents:

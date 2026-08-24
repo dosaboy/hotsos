@@ -1,5 +1,13 @@
+Writing Checks
+==============
+
+This guide explains how to add your own analysis to hotsos. Checks are written
+in a YAML-based language; for the property syntax see the
+:doc:`../reference/language/index`, and for the concepts behind each check type
+see :doc:`../explanation/scenarios` and :doc:`../explanation/events`.
+
 Background
-==========
+----------
 
 First choose what type of check you want to write and in which plugin context
 the check should be run. The choices are events and scenarios.
@@ -35,7 +43,7 @@ TIP: to use a single quote ' inside a yaml string you need to replace it with
      two single quotes.
 
 Pre-requisites
-==============
+--------------
 
 If you want to gate running the contents of a directory on a pre-requisite you
 can do so by putting them in a file that shares the name of its parent directory.

@@ -1,5 +1,5 @@
-Using Hotsos
-============
+Run an analysis
+===============
 
 Hotsos supports a number of application/subsystem plugins. It will by default
 run all plugins and each will in turn execute its associated checks and
@@ -7,7 +7,7 @@ extensions. The output of each plugin is collected and output as a summary
 containing key information about the associated plugin/subsystem as well as the
 results of any analysis that identified issues or known bugs. For more
 information on how analysis and extensions are implemented see the
-:doc:`Contributor Guide <../contrib/index>`.
+:doc:`../explanation/architecture` and :doc:`write-checks`.
 
 Let's say for example that you are running an Openstack Cloud and one of your
 hypervisor nodes that is also running part of a Ceph storage cluster
@@ -60,8 +60,8 @@ Using this useful tool we can easily query for specific information e.g.
       ]
     }
 
-Examples
---------
+Example outputs
+---------------
 
 Some example outputs for each plugin can be found `here <https://github.com/canonical/hotsos/tree/main/examples>`_. The *\*.short.\** summary files were generated using the `\-\-short` option. Note that if using the `\-\-save` option, all formats are saved automatically so this option would have no effect.
 

@@ -87,7 +87,8 @@ bugs we expect to have been raised by the check:
       # msg can be a string or a list of strings
       <issue type>: msg
 
-## Example
+Example
+-------
 
 Imagine you have a check at ``defs/scenarios/myplugin/mycheck.yaml`` as follows:
 
@@ -112,9 +113,10 @@ You can then write a test at ``defs/tests/scenarios/myplugin/mycheck.yaml`` as f
 
 .. code-block:: yaml
 
-    data_root:
-      a/file: |
-        hello world
+    data-root:
+      files:
+        a/file: |
+          hello world
     mock:
       patch:
         path.to.class.property:

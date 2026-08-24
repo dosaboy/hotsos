@@ -1,14 +1,9 @@
-.. hotsos documentation master file, created by
-   sphinx-quickstart on Mon Jun 19 09:55:40 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Installing Hotsos
-=================
+Install hotsos
+==============
 
 There are a number of supported ways to install hotsos.
 
-Debian Package (daily build)
+Debian package (daily build)
 ----------------------------
 
 This is the recommended way to install and is updated daily.

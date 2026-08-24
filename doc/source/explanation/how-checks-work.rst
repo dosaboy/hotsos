@@ -1,5 +1,5 @@
-Internals
-=========
+How Checks Work
+===============
 
 Scenarios and Events are written in YAML using a language described here and
 implemented using the `propertree <https://github.com/dosaboy/propertree>`_

@@ -132,5 +132,5 @@ Coverage must stay above **84%**.
 
 ## Useful Links
 - Docs: https://hotsos.readthedocs.io/en/latest/
-- Contributing guide: https://hotsos.readthedocs.io/en/latest/contrib/index.html
-- Install guide: https://hotsos.readthedocs.io/en/latest/install/index.html
+- Contributing guide: https://hotsos.readthedocs.io/en/latest/how-to/write-checks.html
+- Install guide: https://hotsos.readthedocs.io/en/latest/how-to/install.html

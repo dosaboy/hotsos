@@ -1,3 +1,7 @@
+=================
+Requirement types
+=================
+
 These are the supported members of the :ref:`requires` (mapped) property. You can use any number or combination of these within a requires definition, optionally using a
 :ref:`LogicalGroupings` for logical groupings.
 
@@ -16,15 +20,17 @@ Usage:
 
 Cache keys:
 
-  * path_not_found - list of paths that were provided but do not exist.
-  * paths - list of paths provided.
+* ``path_not_found`` - the first path not found, or ``None``.
+* ``paths`` - list of resolved paths provided.
 
+
+.. _property requirement:
 
 Property
 --------
 
 Imports a Python property and applies one or more operators to its value to get
-a boolean True/False result. By default the "truth" operator is applied.
+a boolean result. By default, Python's ``operator.truth`` is applied.
 
 Usage:
 
@@ -38,7 +44,7 @@ or
 
     property:
       path: <import path to python property>
-      ops: OPS_LIST
+      ops: [[<operator>, <optional argument>], ...]
 
 Cache keys:
 
@@ -95,11 +101,11 @@ Supported operators:
 
 Cache keys:
 
-  * package - name of each installed package
-  * version - version of each installed package
+* ``package`` - comma-separated string of installed package names.
+* ``version`` - comma-separated string of their installed versions.
 
 Binary
----
+------
 
 Takes a binary name and optional list of version ranges. Returns True if
 the binary exists and if provided, version is within ranges.
@@ -128,8 +134,8 @@ NOTE: the version checking logic is currently the same as for the :ref:`Apt` typ
 
 Cache keys:
 
-  * binary - name of each installed binary
-  * version - version of each installed binary
+* ``binary`` - comma-separated string of installed binary names.
+* ``version`` - comma-separated string of their installed versions.
 
 Snap
 ----
@@ -161,16 +167,20 @@ Or with optional conditions as follows:
 In the above example in order for snap requirement to be True, *mypackage* snap must be
 installed in the system and either one of the following conditions must be true:
 
- * revision number is between *1234*-*2345* and the channel name is *2.0/stable*
- * version number is *1.17*
- * channel name is "3.0/beta"
+* revision number is between *1234*-*2345* and the channel name is exactly
+  *2.0/stable*
+* version number is *1.17*
+* channel name is exactly *3.0/beta*
+
+All criteria in one list item must match (AND). Matching any list item is
+sufficient (OR).
 
 Cache keys:
 
-  * channel - channel of each installed package
-  * package - name of each installed package
-  * revision - revision of each installed package
-  * version - version of each installed package
+* ``channel`` - comma-separated string of installed package channels.
+* ``package`` - comma-separated string of installed package names.
+* ``revision`` - comma-separated string of installed package revisions.
+* ``version`` - comma-separated string of installed package versions.
 
 Pebble
 ------
@@ -195,6 +205,13 @@ or
 
 .. code-block:: yaml
 
+  pebble:
+    service_name: active
+
+or
+
+.. code-block:: yaml
+
     pebble:
       service_name:
         state: <service state>
@@ -204,7 +221,7 @@ or
 
 Cache keys:
 
-  * services - list of service names
+  * ``services`` - comma-separated string of service names checked.
 
 Systemd
 -------
@@ -238,6 +255,14 @@ This next example shows a more thorough check:
 .. code-block:: yaml
 
     systemd:
+      service_name: active
+
+The mapping shorthand above checks that the service state equals ``active``.
+The expanded form supports additional criteria:
+
+.. code-block:: yaml
+
+    systemd:
       service_name:
         op: eq
         processes: ['aproc']
@@ -252,7 +277,7 @@ NOTE: when using this form, at least one field must be set.
 
 Cache keys:
 
-* services - list of service names we have checked
+* ``services`` - comma-separated string of service names checked.
 
 Config
 ------
@@ -283,8 +308,8 @@ compared or by setting *ops* to a list of
 `operations <https://docs.python.org/3/library/operator.html>`_. Only one of
 *value* and *ops* should be used to check a value.
 
-Optional parameter *allow-unset* (default=True) determines if *key* may be
-unset or not found.
+Optional parameter ``allow-unset`` defaults to ``false`` and determines whether
+the assertion passes when the key is unset or not found.
 
 NOTE: *path* must be relative to the :ref:`data root <data root>`.
 
@@ -308,6 +333,8 @@ Cache keys:
 * key - the last key to be checked
 * ops - the last ops to be run
 * value_actual - the value of the last key to be checked
+
+.. _varops requirement:
 
 Varops
 ------
