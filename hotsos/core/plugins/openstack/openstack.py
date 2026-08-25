@@ -61,6 +61,7 @@ from hotsos.core.plugins.openstack.exceptions_octavia import (
 # and the Sunbeam supported versions page:
 # https://canonical-openstack.readthedocs-hosted.com/en/latest/reference/release-cycle-and-supported-versions/  # noqa, pylint: disable=line-too-long
 OST_EOL_INFO = {
+    'gazpacho': datetime(2031, 4, 30),
     'flamingo': datetime(2027, 4, 30),
     'epoxy': datetime(2026, 10, 30),
     'dalmatian': datetime(2026, 4, 30),
@@ -84,6 +85,7 @@ OST_EOL_INFO = {
 # https://openstack-ci-reports.ubuntu.com/reports/cloud-archive/index.html
 OST_REL_INFO = {
     'aodh-common': {
+        'gazpacho': '1:22.0.0',
         'flamingo': '1:21.0.0',
         'epoxy': '1:20.0.0',
         'dalmatian': '1:19.0.0',
@@ -101,6 +103,7 @@ OST_REL_INFO = {
         'rocky': '7.0.0',
         'queens': '6.0.0'},
     'barbican-common': {
+        'gazpacho': '2:22.0.0',
         'flamingo': '2:21.0.0',
         'epoxy': '2:20.0.0',
         'dalmatian': '2:19.0.0',
@@ -118,6 +121,7 @@ OST_REL_INFO = {
         'rocky': '1:7.0.0',
         'queens': '1:6.0.0'},
     'cinder-common': {
+        'gazpacho': '2:28.0.0',
         'flamingo': '2:27.0.0',
         'epoxy': '2:26.0.0',
         'dalmatian': '2:25.0.0',
@@ -135,6 +139,7 @@ OST_REL_INFO = {
         'rocky': '2:13.0.0',
         'queens': '2:12.0.0'},
     'designate-common': {
+        'gazpacho': '1:22.0.0',
         'flamingo': '1:21.0.0',
         'epoxy': '1:20.0.0',
         'dalmatian': '1:19.0.0',
@@ -152,6 +157,7 @@ OST_REL_INFO = {
         'rocky': '1:7.0.0',
         'queens': '1:6.0.0'},
     'glance-common': {
+        'gazpacho': '2:32.0.0-0',
         'flamingo': '2:31.0.1',
         'epoxy': '2:30.0.1',
         'dalmatian': '2:29.0.1',
@@ -169,6 +175,7 @@ OST_REL_INFO = {
         'rocky': '2:17.0.0',
         'queens': '2:16.0.0'},
     'heat-common': {
+        'gazpacho': '1:26.0.0',
         'flamingo': '1:25.0.0',
         'epoxy': '1:24.0.0',
         'dalmatian': '1:23.0.0',
@@ -186,6 +193,7 @@ OST_REL_INFO = {
         'rocky': '1:11.0.0',
         'queens': '1:10.0.0'},
     'ironic-common': {
+        'gazpacho': '1:35.0.0',
         'flamingo': '1:32.0.0',
         'epoxy': '1:29.0.0',
         'dalmatian': '1:26.1.0',
@@ -195,6 +203,7 @@ OST_REL_INFO = {
         'zed': '1:20.2.0',
         'yoga': '1:19.0.0'},
     'keystone': {
+        'gazpacho': '2:29.0.0',
         'flamingo': '2:28.0.0',
         'epoxy': '2:27.0.0',
         'dalmatian': '2:26.0.0',
@@ -214,6 +223,7 @@ OST_REL_INFO = {
         'pike': '2:12.0.0',
         'ocata': '2:11.0.0'},
     'masakari-common': {
+        'gazpacho': '21.0.0',
         'flamingo': '20.0.0',
         'epoxy': '19.0.0',
         'dalmatian': '18.0.0',
@@ -230,6 +240,7 @@ OST_REL_INFO = {
         'stein': '7.0.0',
         'rocky': '6.0.0'},
     'neutron-common': {
+        'gazpacho': '2:28.0.0',
         'flamingo': '2:27.0.0',
         'epoxy': '2:26.0.0',
         'dalmatian': '2:25.0.0',
@@ -255,6 +266,7 @@ OST_REL_INFO = {
         'juno': '1:2014.2.0',
         'icehouse': '1:2014.1.0'},
     'nova-common': {
+        'gazpacho': '3:33.0.0',
         'flamingo': '3:32.0.0',
         'epoxy': '3:31.0.0',
         'dalmatian': '3:30.0.0',
@@ -280,6 +292,7 @@ OST_REL_INFO = {
         'juno': '1:2014.2.0',
         'icehouse': '1:2014.1.0'},
     'octavia-common': {
+        'gazpacho': '1:18.0.0',
         'flamingo': '1:17.0.0',
         'epoxy': '1:16.0.0',
         'dalmatian': '1:15.0.0',
@@ -296,6 +309,7 @@ OST_REL_INFO = {
         'stein': '4.0.0',
         'rocky': '3.0.0'},
     'openstack-dashboard-common': {
+        'gazpacho': '4:25.7.1',
         'flamingo': '4:25.5.1',
         'epoxy': '4:25.3.0',
         'dalmatian': '4:25.1.0',
@@ -313,6 +327,7 @@ OST_REL_INFO = {
         'rocky': '3:14.0.0',
         'queens': '3:13.0.0'},
     'placement-common': {
+        'gazpacho': '1:15.0.0',
         'flamingo': '1:14.0.0',
         'epoxy': '1:13.0.0',
         'dalmatian': '1:12.0.0',
@@ -332,6 +347,7 @@ OST_REL_INFO = {
 OST_SUNBEAM_SNAP_NAMES = ['openstack', 'openstack-hypervisor']
 
 OST_SUNBEAM_REL_INFO = {
+    '2026.1': 'gazpacho',
     '2025.2': 'flamingo',
     '2025.1': 'epoxy',
     '2024.2': 'dalmation',
