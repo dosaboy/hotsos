@@ -3,12 +3,15 @@ vars:
 checks:
   is_sunbeam_controller:
     property: hotsos.core.plugins.openstack.sunbeam.SunbeamInfo.is_controller
+  statefulsets_has_incomplete:
+    varops: [[$statefulsets], [contains, incomplete]]
   not_all_statefulsets_complete:
     varops: [[$statefulsets], [getitem, incomplete], [length_hint]]
 conclusions:
   incomplete_statefulsets:
     decision:
       - is_sunbeam_controller
+      - statefulsets_has_incomplete
       - not_all_statefulsets_complete
     raises:
       type: OpenstackError

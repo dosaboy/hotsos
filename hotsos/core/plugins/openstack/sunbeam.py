@@ -3,6 +3,7 @@ from collections import defaultdict
 from functools import cached_property
 
 from hotsos.core.host_helpers import CLIHelper, SnapPackageHelper
+from hotsos.core.host_helpers.cli.commands import kubectl
 from hotsos.core.log import log
 
 
@@ -15,7 +16,7 @@ class SunbeamInfo():
         return 'openstack' in SnapPackageHelper(core_snaps=['openstack']).core
 
     @staticmethod
-    def _kubectl_get(opt):
+    def kubectl_get_catch_config_error(opt):
         """ Run kubectl get for the given resource and return its items.
 
         On a controller ~/.kube/config is expected to exist so if kubectl
@@ -30,7 +31,7 @@ class SunbeamInfo():
                                       subopts='')
         if not out or 'items' not in out:
             log.warning("no sunbeam %s found - kubectl returned no data "
-                        "(does ~/.kube/config exist?)", opt)
+                        f"(does {kubectl.DEFAULT_CFG_PATH} exist?)", opt)
             return []
 
         return out['items']
@@ -41,7 +42,7 @@ class SunbeamInfo():
         if not self.is_controller:
             return {}
 
-        items = self._kubectl_get('pods')
+        items = self.kubectl_get_catch_config_error('pods')
         if not items:
             return {}
 
@@ -61,7 +62,7 @@ class SunbeamInfo():
         if not self.is_controller:
             return {}
 
-        items = self._kubectl_get('statefulsets')
+        items = self.kubectl_get_catch_config_error('statefulsets')
         if not items:
             return {}
 

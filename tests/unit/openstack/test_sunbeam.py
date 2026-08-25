@@ -4,6 +4,7 @@ from unittest import mock
 from hotsos.core.config import HotSOSConfig
 import hotsos.core.plugins.openstack as openstack_core
 from hotsos.core.plugins.openstack import sunbeam
+from hotsos.core.host_helpers.cli.commands import kubectl
 from hotsos.core.issues import IssuesManager
 from hotsos.plugin_extensions.openstack import agent
 from hotsos.plugin_extensions.openstack import sunbeam as sunbeam_ext
@@ -169,6 +170,21 @@ class TestOpenstackSunbeam(TestOpenstackSunbeamBase):
             self.assertDictEqual(sunbeaminfo.pods, {})
             self.assertDictEqual(sunbeaminfo.statefulsets, {})
 
+    def test_kubectl_get_missing_config_path(self):
+        """ Test empty kubectl output when its config path is unavailable. """
+        cfg_path = '/path/that/does/not/exist'
+        with mock.patch.object(sunbeam, 'CLIHelper') as mock_helper, \
+                mock.patch.object(kubectl, 'DEFAULT_CFG_PATH', cfg_path), \
+                self.assertLogs(logger='hotsos', level='WARNING') as log:
+            mock_helper.return_value.kubectl_get.return_value = None
+            out = sunbeam.SunbeamInfo.kubectl_get_catch_config_error('pods')
+            self.assertEqual(out, [])
+
+        mock_helper.return_value.kubectl_get.assert_called_once_with(
+            namespace='openstack', opt='pods', subopts='')
+        self.assertEqual(len(log.output), 1)
+        self.assertIn(f'does {cfg_path} exist?', log.output[0])
+
     def test_summary_controller_no_kubectl_data_raises_issue(self):
         """ Test issue raised when controller has no kubernetes data. """
         with mock.patch.object(sunbeam.SunbeamInfo, 'is_controller', True), \
@@ -179,8 +195,11 @@ class TestOpenstackSunbeam(TestOpenstackSunbeamBase):
             issues = {'potential-issues': [{
                         'message': ('this host is a sunbeam controller but no '
                                     'kubernetes data was found - kubectl may '
-                                    'have failed (does ~/.kube/config '
-                                    'exist?)'),
+                                    'have failed '
+                                    f'(does {kubectl.DEFAULT_CFG_PATH} '
+                                    'exist? - if not you can try '
+                                    'setting the KUBECONFIG env var to a '
+                                    'valid path)'),
                         'origin': 'openstack.testpart',
                         'type': 'OpenstackWarning'}]}
             self.assertEqual(IssuesManager().load_issues(), issues)

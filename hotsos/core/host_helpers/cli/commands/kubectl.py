@@ -1,3 +1,4 @@
+import os
 from collections import UserList
 
 from hotsos.core.host_helpers.cli.common import BinCmd, FileCmd
@@ -8,6 +9,12 @@ KUBECTL_ALIASES = ['kubectl', 'microk8s.kubectl', 'k8s kubectl']
 KUBE_CONFIGS = ['/etc/kubernetes/admin.conf',
                 '/root/cdk/cdk_addons_kubectl_config',
                 '/var/snap/microk8s/current/credentials/client.config']
+
+# See https://kubernetes.io/docs/reference/kubectl/generated/kubectl_config for
+# info on standard config paths.
+#
+# NOTE: the user can optionally set KUBECONFIG env var to override these paths.
+DEFAULT_CFG_PATH = f"{os.environ.get('HOME', '~')}/.kube/config"
 
 
 class KubectlBinCmdBase(BinCmd):
