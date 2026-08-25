@@ -207,7 +207,9 @@ class OpenstackBase():  # pylint: disable=too-many-instance-attributes
             for pkg in OST_SUNBEAM_SNAP_NAMES:
                 if pkg in self.snaps.core:
                     ver = self.snaps.get_version(pkg)
-                    relnames.add(OST_SUNBEAM_REL_INFO[ver])
+                    match = re.search(r'\d+\.\d+', ver)
+                    if match:
+                        relnames.add(OST_SUNBEAM_REL_INFO[match.group(0)])
 
         log.debug("release name(s) found: %s", ','.join(relnames))
         return list(relnames)

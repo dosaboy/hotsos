@@ -198,6 +198,14 @@ class TestOpenstackSunbeamPluginCore(TestOpenstackSunbeamBase):
                 {'version': '2024.1', 'channel': '2024.1/stable'}}
         self.assertEqual(ost_base.snaps.core, core)
 
+    def test_release_name_from_snap_version_with_suffix(self):
+        """ Test Sunbeam release detection ignores snap version suffixes. """
+        ost_base = openstack_core.OpenstackBase()
+        with mock.patch.object(ost_base.snaps, 'get_version',
+                               return_value='2024.1+build'):
+            self.assertEqual(ost_base.installed_pkg_release_names,
+                             ['caracal'])
+
 
 class TestOpenstackSunbeamAgentEvents(TestOpenstackSunbeamBase):
     """ Unit tests for OpenStack Sunbeam agent event checks. """
