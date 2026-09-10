@@ -119,7 +119,7 @@ class OpenvSwitchBase():
         """ Return tunnel endpoint info keyed by protocol. """
         tunnel_info = {}
         ovn_external_ids = self.ovsdb.Open_vSwitch.external_ids
-        if ovn_external_ids:
+        if ovn_external_ids and isinstance(ovn_external_ids, dict):
             # ovn only shows the local ip used in the db so we have to get from
             # there.
             proto = ovn_external_ids.get('ovn-encap-type')
@@ -173,13 +173,10 @@ class OpenvSwitchBase():
     def offload_enabled(self):
         """ Return True if hardware offload is enabled. """
         config = self.ovsdb.Open_vSwitch.other_config
-        if not config:
+        if not (config or isinstance(config, dict)):
             return False
 
-        if config.get('hw-offload') == "true":
-            return True
-
-        return False
+        return config.get('hw-offload') == "true"
 
 
 class OVSFDBStats(OpenvSwitchBase):
@@ -316,10 +313,7 @@ class OVSDPDK(OpenvSwitchBase):
     def config(self):
         """ Return the OVSDB Open_vSwitch other_config dict. """
         config = self.ovsdb.Open_vSwitch.other_config
-        if not config:
-            return {}
-
-        if not isinstance(config, dict):
+        if not (config or isinstance(config, dict)):
             return {}
 
         return config
