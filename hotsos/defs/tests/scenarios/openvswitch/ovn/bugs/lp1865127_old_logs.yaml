@@ -1,0 +1,11 @@
+target-name: lp1865127.yaml
+data-root:
+  files:
+    sos_commands/dpkg/dpkg_-l: |
+      ii  ovn-common 20.03.2-0ubuntu0.20.04.3 amd64
+    var/log/ovn/ovn-controller.log: |
+      2022-01-28T01:13:33.307Z|00123|main|ERR|bridge not found for localnet port 'br-provider' with network name physnet1
+  copy-from-original:
+    - uptime
+    - sos_commands/date/date
+raised-bugs:

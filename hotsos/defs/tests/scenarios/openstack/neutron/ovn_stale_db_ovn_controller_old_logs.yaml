@@ -1,0 +1,28 @@
+target-name: ovn_stale_db.yaml
+data-root:
+  files:
+    var/log/ovn/ovn-controller.log: |
+      2022-02-08T13:02:02.789Z|00042|ovsdb_idl|WARN|tcp:10.5.0.4:6642: clustered database server has stale data; trying another server
+      2022-02-08T13:02:10.795Z|00043|reconnect|INFO|tcp:10.5.0.5:6642: connected
+      2022-02-08T13:03:10.789Z|00042|ovsdb_idl|WARN|tcp:10.5.0.4:6642: clustered database server has stale data; trying another server
+      2022-02-08T13:03:10.795Z|00043|reconnect|INFO|tcp:10.5.0.5:6642: connected
+      2022-02-08T13:04:02.789Z|00042|ovsdb_idl|WARN|tcp:10.5.0.4:6642: clustered database server has stale data; trying another server
+      2022-02-08T13:04:10.795Z|00043|reconnect|INFO|tcp:10.5.0.5:6642: connected
+      2022-02-08T13:05:02.789Z|00042|ovsdb_idl|WARN|tcp:10.5.0.4:6642: clustered database server has stale data; trying another server
+      2022-02-08T13:05:10.795Z|00043|reconnect|INFO|tcp:10.5.0.5:6642: connected
+      2022-02-08T13:06:02.789Z|00042|ovsdb_idl|WARN|tcp:10.5.0.4:6642: clustered database server has stale data; trying another server
+      2022-02-08T13:06:10.795Z|00043|reconnect|INFO|tcp:10.5.0.5:6642: connected
+      2022-02-08T13:07:02.789Z|00042|ovsdb_idl|WARN|tcp:10.5.0.4:6642: clustered database server has stale data; trying another server
+      2022-02-08T13:07:10.795Z|00043|reconnect|INFO|tcp:10.5.0.5:6642: connected
+      2022-02-08T13:08:02.789Z|00042|ovsdb_idl|WARN|tcp:10.5.0.4:6642: clustered database server has stale data; trying another server
+      2022-02-08T13:08:10.795Z|00043|reconnect|INFO|tcp:10.5.0.5:6642: connected
+      2022-02-08T13:09:02.789Z|00042|ovsdb_idl|WARN|tcp:10.5.0.4:6642: clustered database server has stale data; trying another server
+      2022-02-08T13:09:10.795Z|00043|reconnect|INFO|tcp:10.5.0.5:6642: connected
+      2022-02-08T13:10:02.789Z|00042|ovsdb_idl|WARN|tcp:10.5.0.4:6642: clustered database server has stale data; trying another server
+      2022-02-08T13:10:10.795Z|00043|reconnect|INFO|tcp:10.5.0.5:6642: connected
+      2022-02-08T13:11:02.789Z|00042|ovsdb_idl|WARN|tcp:10.5.0.4:6642: clustered database server has stale data; trying another server
+      2022-02-08T13:11:10.795Z|00043|reconnect|INFO|tcp:10.5.0.5:6642: connected
+  copy-from-original:
+    - uptime
+    - sos_commands/date/date
+raised-bugs:
