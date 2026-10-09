@@ -11,6 +11,17 @@ from hotsos.core.formatters.common import yaml_dump
 class HTMLFormatter:
     """ Format the summary as html. """
 
+    # Colours used, in order, for bar chart bars.
+    BAR_COLOURS = (
+        '#e95420', '#772953', '#0e8420', '#2c7ef8', '#c19b00',
+        '#007aa6', '#a01b16', '#5e2750', '#19a33a', '#6b7280',
+    )
+
+    # Keys that identify a statistics mapping (min/max/avg/...) rather than a
+    # distribution of counts. These must never be rendered as a bar chart.
+    STATS_KEYS = frozenset({'min', 'max', 'stdev', 'stddev', 'avg', 'mean',
+                            'median', 'samples'})
+
     @staticmethod
     def render(context, template):
         """Render a Jinja2 template with the given context."""
@@ -89,11 +100,72 @@ class HTMLFormatter:
         @return: A string expansion formatted in HTML of the data object.
         """
         if isinstance(data, dict):
+            if self._is_numeric_distribution(data):
+                return self._expand_distribution(data)
             return self._expand_dict(data, level)
         if isinstance(data, list):
             return self._expand_list(data, level)
 
         return data
+
+    @classmethod
+    def _is_numeric_distribution(cls, data):
+        """ Return True if data is a distribution of counts.
+
+        A distribution is a mapping of labels (e.g. dates or other categories)
+        to non-negative integer counts, such as the time series tallies emitted
+        by plugin extensions. These are rendered as bar charts. Statistics
+        mappings (min/max/avg/...) and mappings containing non-count values are
+        explicitly excluded.
+        """
+        if not isinstance(data, dict) or len(data) < 2:
+            return False
+
+        if {str(k) for k in data}.issubset(cls.STATS_KEYS):
+            return False
+
+        total = 0
+        for value in data.values():
+            # bool is a subclass of int but is not a count.
+            if isinstance(value, bool) or not isinstance(value, int):
+                return False
+            if value < 0:
+                return False
+            total += value
+
+        return total > 0
+
+    @classmethod
+    def _bar_rows(cls, data):
+        """ Build the metadata for each bar of a bar chart.
+
+        Returns a list of bar descriptors (label, value, width relative to the
+        largest value and colour) that the content_barchart.html template
+        renders.
+        """
+        total = sum(data.values())
+        if total <= 0:
+            return []
+
+        largest = max(data.values())
+        rows = []
+        for idx, (label, value) in enumerate(data.items()):
+            rows.append({
+                'label': str(label),
+                'value': value,
+                'width': round(value / largest * 100, 1) if largest else 0,
+                'colour': cls.BAR_COLOURS[idx % len(cls.BAR_COLOURS)],
+            })
+
+        return rows
+
+    def _expand_distribution(self, data):
+        """ Render a distribution of counts as a bar chart. """
+        rows = self._bar_rows(data)
+        if not rows:
+            return self._expand_dict(data, 0)
+
+        return self.render({'rows': rows}, 'content_barchart.html')
 
     @staticmethod
     def _anchor_id(name):

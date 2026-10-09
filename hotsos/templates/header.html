@@ -522,6 +522,49 @@
         /* Nested field tables sit flush inside their disclosure group. */
         .hs-tree .hs-fields--compact { margin-top: 0; }
 
+        /* Time series distributions are rendered as horizontal bar charts. */
+        .hs-chart {
+            padding: 0.6rem 0.25rem;
+        }
+        .hs-chart__bars {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        .hs-chart__bar-row {
+            display: grid;
+            grid-template-columns: minmax(6rem, 12rem) minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+        }
+        .hs-chart__label {
+            color: #33383f;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .hs-chart__track {
+            display: block;
+            width: 100%;
+            height: 0.95rem;
+            background: #f1ece9;
+            border-radius: 0.25rem;
+            overflow: hidden;
+        }
+        .hs-chart__bar {
+            display: block;
+            height: 100%;
+            min-width: 2px;
+            border-radius: 0.25rem;
+        }
+        .hs-chart__figure {
+            color: var(--hs-muted);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
         .hs-empty {
             margin-top: 1rem;
             padding: 2rem;

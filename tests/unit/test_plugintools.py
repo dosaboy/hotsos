@@ -197,6 +197,78 @@ plain value
                       filtered)
         self.assertIn('Generated ', filtered)
 
+    def test_apply_output_formatting_html_barchart(self):
+        """A distribution of counts is rendered as a bar chart."""
+        summary = {
+            'storage':
+                {
+                    'lock-held-times':
+                        {
+                            '2022-02-10':
+                                {
+                                    '61': 1,
+                                    '22': 1,
+                                    '3': 1,
+                                    '2': 2,
+                                },
+                        },
+                },
+        }
+        filtered = OutputManager(summary).get_builder().to(fmt="html")
+        self.assertIn('class="hs-chart__bars', filtered)
+        self.assertIn('hs-chart__bar-row', filtered)
+        # Each bar exposes its label and value.
+        self.assertIn('title="2: 2"', filtered)
+
+    def test_apply_output_formatting_html_barchart_widths(self):
+        """Bar widths are scaled relative to the largest value."""
+        summary = {
+            'storage':
+                {
+                    'warnings':
+                        {
+                            'WARN': 5,
+                            'ERR': 1,
+                        },
+                },
+        }
+        filtered = OutputManager(summary).get_builder().to(fmt="html")
+        self.assertIn('class="hs-chart__bars', filtered)
+        # The largest value fills the track, smaller values are proportional.
+        self.assertIn('width: 100.0%', filtered)
+        self.assertIn('width: 20.0%', filtered)
+
+    def test_apply_output_formatting_html_stats_not_barchart(self):
+        """A statistics mapping must not be rendered as a bar chart."""
+        summary = {
+            'storage':
+                {
+                    'stats':
+                        {
+                            'min': 1,
+                            'max': 5,
+                            'avg': 3,
+                            'samples': 10,
+                        },
+                },
+        }
+        filtered = OutputManager(summary).get_builder().to(fmt="html")
+        self.assertNotIn('class="hs-chart__bars', filtered)
+
+    def test_apply_output_formatting_html_single_entry_not_barchart(self):
+        """A single-entry distribution is not rendered as a bar chart."""
+        summary = {
+            'storage':
+                {
+                    'warnings':
+                        {
+                            '2022-02-10': 12,
+                        },
+                },
+        }
+        filtered = OutputManager(summary).get_builder().to(fmt="html")
+        self.assertNotIn('class="hs-chart__bars', filtered)
+
 
 class TestOutputManagerLogile(utils.BaseTestCase):
     """
