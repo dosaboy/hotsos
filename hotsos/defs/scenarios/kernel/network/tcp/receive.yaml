@@ -1,0 +1,99 @@
+vars:
+  backlogd: '@hotsos.core.plugins.kernel.net.NetStatTCP.TCPBacklogDrop'
+  ofod: '@hotsos.core.plugins.kernel.net.NetStatTCP.OfoPruned'
+  zwind: '@hotsos.core.plugins.kernel.net.NetStatTCP.TCPZeroWindowDrop'
+  rcvqd: '@hotsos.core.plugins.kernel.net.NetStatTCP.TCPRcvQDrop'
+  rcvqd_pcent: '@hotsos.core.plugins.kernel.net.NetStatTCP.TCPRcvQDropPcentInSegs'
+  # Host datapoints used to decide whether interrupt handling is unbalanced.
+  irq_total: '@hotsos.core.plugins.kernel.netdata.HostData.nic_interrupt_total'
+  irq_cpu: '@hotsos.core.plugins.kernel.netdata.HostData.nic_interrupt_busiest_cpu'
+  irq_pcent: '@hotsos.core.plugins.kernel.netdata.HostData.nic_interrupt_busiest_pcent'
+  irqs: '@hotsos.core.plugins.kernel.netdata.HostData.nic_irqs'
+  online_cpus: '@hotsos.core.plugins.kernel.netdata.HostData.online_cpus'
+checks:
+  backlogd:
+    varops: [[$backlogd], [gt, 500]]
+  ofod:
+    varops: [[$ofod], [gt, 500]]
+  zwind:
+    varops: [[$zwind], [gt, 500]]
+  rcvqd:
+    or:
+      - varops: [[$rcvqd], [gt, 500]]
+      - varops: [[$rcvqd_pcent], [gt, 1]]
+  irq_concentrated:
+    and:
+      # Spreading interrupts only helps when there is more than one CPU.
+      - varops: [[$online_cpus], [gt, 1]]
+      - varops: [[$irq_total], [ge, 1000]]
+      - varops: [[$irq_cpu], [ne, null]]
+      - varops: [[$irqs], [truth]]
+      - varops: [[$irq_pcent], [ge, 80]]
+conclusions:
+  backlogd:
+    decision: backlogd
+    raises:
+      type: KernelWarning
+      message: >-
+        tcp socket backlog queue full (drops={count}). Packets are arriving
+        faster than the owning processes can read them. Please check the
+        processes with unread data and the CPU load they are under. See
+        network.tcp-sockets.unread-connections and socket-count-consumers in
+        the kernel summary to identify the processes not reading their sockets.
+      format-dict:
+        count: $backlogd
+  ofod:
+    decision: ofod
+    raises:
+      type: KernelWarning
+      message: >-
+        tcp no rmem adding to OFO recv queue (drops={count}). Out-of-order
+        packets are being dropped because receive memory is exhausted. Please
+        check receive buffer sizes and the processes with unread data. See
+        network.tcp-sockets.unread-connections and net.ipv4.tcp_rmem under
+        network.sysctl in the kernel summary.
+      format-dict:
+        count: $ofod
+  zwind:
+    decision: zwind
+    raises:
+      type: KernelWarning
+      message: >-
+        tcp receive window full (drops={count}). The receiving applications are
+        not reading data fast enough. Please check the processes with unread
+        data and the CPU load they are under. See
+        network.tcp-sockets.unread-connections in the kernel summary to
+        identify the applications not reading their sockets.
+      format-dict:
+        count: $zwind
+  rcvqd:
+    decision: rcvqd
+    raises:
+      type: KernelWarning
+      message: >-
+        tcp no rmem adding to recv queue (drops={count}, {pcent}% of total rx).
+        Please check receive buffer sizes and the processes with unread data.
+        See network.tcp-sockets.unread-connections and net.ipv4.tcp_rmem under
+        network.sysctl in the kernel summary.
+      format-dict:
+        count: $rcvqd
+        pcent: $rcvqd_pcent
+  irq_concentrated:
+    decision:
+      and:
+        - irq_concentrated
+        - or: [backlogd, ofod, rcvqd]
+    raises:
+      type: KernelWarning
+      message: >-
+        Network device interrupts (/proc/interrupts): {cpu} handles
+        {pcent}% of {total} interrupts; {irqs}. Interrupt handling is not
+        spread across CPUs. Please check that irqbalance is running, the
+        smp_affinity of the IRQs above and whether the NIC is using multiple
+        queues (ethtool -l). See network.interrupts.nic-irqs in the kernel
+        summary for the per-IRQ distribution.
+      format-dict:
+        cpu: $irq_cpu
+        pcent: $irq_pcent
+        total: $irq_total
+        irqs: $irqs:semicolon_join
