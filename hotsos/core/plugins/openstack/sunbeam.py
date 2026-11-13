@@ -29,6 +29,7 @@ class SunbeamInfo():
         """
         out = CLIHelper().kubectl_get(namespace='openstack', opt=opt,
                                       subopts='')
+        log.warning(out)
         if not out or 'items' not in out:
             log.warning("no sunbeam %s found - kubectl returned no data "
                         f"(does {kubectl.DEFAULT_CFG_PATH} exist?)", opt)

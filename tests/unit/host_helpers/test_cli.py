@@ -23,6 +23,25 @@ KUBECTL_GET_OUT = """
 }
 """  # noqa
 
+KUBECTL_GET_PODS_OUT = """
+{{
+    "apiVersion": "v1",
+    "kind": "List",
+    "items": [
+        {{
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {{"name": "{name}", "namespace": "{namespace}"}}
+        }}]
+}}
+"""
+
+
+def kubectl_pod(name, namespace):
+    """ Return pod dict as found in KUBECTL_GET_PODS_OUT. """
+    return {'apiVersion': 'v1', 'kind': 'Pod',
+            'metadata': {'name': name, 'namespace': namespace}}
+
 
 class TestCLIHelper(utils.BaseTestCase):
     """
@@ -250,6 +269,78 @@ class TestCLIHelper(utils.BaseTestCase):
         self.assertEqual(out, expected)
 
 
+class TestCLIHelperKubectl(utils.BaseTestCase):
+    """ Unit tests for kubectl cli helper commands. """
+
+    @utils.create_data_root({'sos_commands/kubernetes/pods/kubectl_'
+                             '--kubeconfig_.etc.kubernetes.admin.conf_get_'
+                             '-o_json_--namespace_openstack_pods':
+                             KUBECTL_GET_PODS_OUT.format(name='pod1',
+                                                         namespace='openstack')
+                             })
+    def test_kubectl_get_filecmd_resource_subdir(self):
+        """Test kubectl get reads from resource-specific subdir."""
+        out = host_cli.CLIHelper().kubectl_get(namespace='openstack',
+                                               opt='pods')
+        self.assertEqual(out['items'], [kubectl_pod('pod1', 'openstack')])
+
+    @staticmethod
+    @mock.patch.object(cli_common, 'subprocess')
+    def test_kubectl_get_all_namespaces_bincmd(mock_subprocess):
+        """Test kubectl get --all-namespaces invokes correct subprocess."""
+        HotSOSConfig.data_root = '/'
+        mock_out = mock.MagicMock()
+        mock_subprocess.run.return_value = mock_out
+        mock_out.stdout = b"{}"
+        mock_out.stderr = b""
+        host_cli.CLIHelper().kubectl_get_all_namespaces(opt='pods')
+        cmd = ['kubectl', 'get', '--all-namespaces', 'pods', '-o', 'json']
+        mock_subprocess.run.assert_called_with(cmd, timeout=300,
+                                               capture_output=True,
+                                               check=False)
+
+    @utils.create_data_root(
+        {'sos_commands/kubernetes/pods/kubectl_--kubeconfig_'
+         '.root.cdk.cdk_addons_kubectl_config_get_-o_json_--namespace_'
+         'openstack_pods':
+         KUBECTL_GET_PODS_OUT.format(name='pod1', namespace='openstack'),
+         'sos_commands/kubernetes/pods/kubectl_--kubeconfig_'
+         '.root.cdk.cdk_addons_kubectl_config_get_-o_json_--namespace_'
+         'kube-system_pods':
+         KUBECTL_GET_PODS_OUT.format(name='pod2', namespace='kube-system'),
+         'sos_commands/kubernetes/services/kubectl_--kubeconfig_'
+         '.root.cdk.cdk_addons_kubectl_config_get_-o_json_--namespace_'
+         'kube-system_services': KUBECTL_GET_OUT})
+    def test_kubectl_get_all_namespaces_filecmd(self):
+        """Test kubectl get --all-namespaces merges per-namespace files."""
+        out = host_cli.CLIHelper().kubectl_get_all_namespaces(opt='pods')
+        self.assertEqual(out['kind'], 'List')
+        self.assertEqual(out['items'], [kubectl_pod('pod2', 'kube-system'),
+                                        kubectl_pod('pod1', 'openstack')])
+
+    @utils.create_data_root(
+        {'sos_commands/kubernetes/cluster-info/openstack/'
+         'k8s_kubectl_get_-o_json_--namespace_openstack_pods':
+         KUBECTL_GET_PODS_OUT.format(name='pod1', namespace='openstack'),
+         'sos_commands/kubernetes/cluster-info/kube-system/'
+         'k8s_kubectl_get_-o_json_--namespace_kube-system_pods':
+         KUBECTL_GET_PODS_OUT.format(name='pod2', namespace='kube-system'),
+         'sos_commands/kubernetes/cluster-info/kube-system/'
+         'k8s_kubectl_get_-o_json_--namespace_kube-system_services':
+         KUBECTL_GET_OUT})
+    def test_kubectl_get_all_namespaces_filecmd_cluster_info(self):
+        """Test kubectl get --all-namespaces merges cluster-info files."""
+        out = host_cli.CLIHelper().kubectl_get_all_namespaces(opt='pods')
+        self.assertEqual(out['items'], [kubectl_pod('pod2', 'kube-system'),
+                                        kubectl_pod('pod1', 'openstack')])
+
+    @utils.create_data_root({})
+    def test_kubectl_get_all_namespaces_filecmd_no_data(self):
+        """Test kubectl get --all-namespaces with no sosreport data."""
+        out = host_cli.CLIHelper().kubectl_get_all_namespaces(opt='pods')
+        self.assertEqual(out, [])
+
+
 class TestCommandAffinity(utils.BaseTestCase):
     """ Tests for command affinity. """
 
@@ -330,6 +421,7 @@ class TestCommandAffinity(utils.BaseTestCase):
         # set for he command source.
         expected = set(['udevadm_info_dev',
                         'kubectl_get',
+                        'kubectl_get_all_namespaces',
                         'docker_ps',
                         'ceph_osd_df_tree_json_decoded',
                         'ovn_nbctl_show',

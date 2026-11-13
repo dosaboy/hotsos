@@ -3,6 +3,7 @@ from unittest import mock
 
 from hotsos.core.config import HotSOSConfig
 from hotsos.core import host_helpers
+from hotsos.core.plugins import kubernetes
 from hotsos.plugin_extensions.kubernetes import summary
 
 from . import utils
@@ -109,6 +110,51 @@ class TestKubernetesSummary(KubernetesTestsBase):
         self.assertTrue(inst.is_runnable())
         self.assertEqual(self.part_output_to_actual(inst.output)['snaps'],
                          result)
+
+
+class TestKubernetesBase(KubernetesTestsBase):
+    """ Unit tests for kubernetes base helpers. """
+    def test_cluster_pods(self):
+        """Test listing all pods in the cluster from a sosreport."""
+        expected = {'default': ['ubuntu-debug-5c8d99cd56-dvcdv',
+                                'ubuntu-debug-5c8d99cd56-jssfv'],
+                    'ingress-nginx-kubernetes-worker':
+                        ['default-http-backend-kubernetes-worker-'
+                         '6cd58d8886-psxtt',
+                         'nginx-ingress-controller-kubernetes-worker-kgczb',
+                         'nginx-ingress-controller-kubernetes-worker-n8dls'],
+                    'kube-system': ['calico-kube-controllers-5f885f6465-zpvgw',
+                                    'coredns-5564855696-86vtt',
+                                    'csi-cinder-controllerplugin-0',
+                                    'csi-cinder-nodeplugin-bb9jk',
+                                    'csi-cinder-nodeplugin-zcpxd',
+                                    'k8s-keystone-auth-6fff776dcd-c97s9',
+                                    'k8s-keystone-auth-6fff776dcd-ngft9',
+                                    'kube-state-metrics-5ccbcf64d5-mvsq8',
+                                    'metrics-server-v0.5.1-79b4746b65-vxlqh',
+                                    'openstack-cloud-controller-manager-'
+                                    'dx8br',
+                                    'openstack-cloud-controller-manager-'
+                                    'm58w4'],
+                    'kubernetes-dashboard':
+                        ['dashboard-metrics-scraper-5cd54464bf-t94lc',
+                         'kubernetes-dashboard-55796c99c-gnvlw']}
+        self.assertEqual(kubernetes.KubernetesBase().cluster_pods, expected)
+
+    @mock.patch.object(kubernetes, 'CLIHelper')
+    def test_cluster_pods_no_data(self, mock_helper):
+        """Test listing cluster pods when kubectl returns nothing."""
+        mock_helper.return_value.kubectl_get_all_namespaces.return_value = []
+        self.assertEqual(kubernetes.KubernetesBase().cluster_pods, {})
+
+    @mock.patch.object(kubernetes, 'CLIHelper')
+    def test_cluster_pods_bad_items(self, mock_helper):
+        """Test listing cluster pods skips items with missing metadata."""
+        mock_helper.return_value.kubectl_get_all_namespaces.return_value = \
+            {'items': [{'metadata': {'name': 'p1', 'namespace': 'ns1'}},
+                       {'metadata': {'name': 'p2'}}]}
+        self.assertEqual(kubernetes.KubernetesBase().cluster_pods,
+                         {'ns1': ['p1']})
 
 
 @utils.load_templated_tests('scenarios/kubernetes')

@@ -143,6 +143,8 @@ class CommandCatalog(UserDict):
                  FileCmd('sos_commands/networking/ip_-s_-d_link')],
             'kubectl_get':
                 kubectl.KubectlGetCmds(),
+            'kubectl_get_all_namespaces':
+                kubectl.KubectlGetAllNamespacesCmds(),
             'kubectl_logs':
                 kubectl.KubectlLogsCmds(),
             'ls_lanR_sys_block':

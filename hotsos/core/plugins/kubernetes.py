@@ -5,6 +5,7 @@ from functools import cached_property
 from hotsos.core.config import HotSOSConfig
 from hotsos.core.host_helpers import (
     APTPackageHelper,
+    CLIHelper,
     HostNetworkingHelper,
     InstallInfoBase,
     PebbleHelper,
@@ -101,6 +102,32 @@ class KubernetesBase():
                     pods.append(pod)
 
         return sorted(pods)
+
+    @cached_property
+    def cluster_pods(self):
+        """ Return all pods in the Kubernetes cluster.
+
+        Unlike the pods property which is restricted to pods running on the
+        local host, this uses the Kubernetes API (via kubectl) to get pods
+        from all namespaces. Works for both live hosts and sosreports.
+
+        @return: dict of sorted pod names keyed by namespace.
+        """
+        out = CLIHelper().kubectl_get_all_namespaces(opt='pods')
+        if not out or 'items' not in out:
+            return {}
+
+        pods = {}
+        for pod in out['items']:
+            try:
+                namespace = pod['metadata']['namespace']
+                name = pod['metadata']['name']
+            except (KeyError, TypeError):
+                continue
+
+            pods.setdefault(namespace, []).append(name)
+
+        return {ns: sorted(names) for ns, names in sorted(pods.items())}
 
     @cached_property
     def containers(self):
